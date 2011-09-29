@@ -180,6 +180,7 @@ JordanCameraWrapper::setCallbacks(notify_callback notify_cb,
                                   data_callback data_cb,
                                   data_callback_timestamp data_cb_timestamp,
                                   void* user)
+
 {
     mNotifyCb = notify_cb;
     mDataCb = data_cb;
@@ -223,12 +224,21 @@ JordanCameraWrapper::dataCb(int32_t msgType, const sp<IMemory>& dataPtr, void* u
 
 void
 JordanCameraWrapper::dataCbTimestamp(nsecs_t timestamp, int32_t msgType,
+#ifdef OMAP_ENHANCEMENT
+                                     const sp<IMemory>& dataPtr, void* user, uint32_t offset, uint32_t stride)
+#else
                                      const sp<IMemory>& dataPtr, void* user)
+#endif
+
 {
     JordanCameraWrapper *_this = (JordanCameraWrapper *) user;
     user = _this->mCbUserData;
 
+#ifdef OMAP_ENHANCEMENT
+    _this->mDataCbTimestamp(timestamp, msgType, dataPtr, user, offset, stride);
+#else
     _this->mDataCbTimestamp(timestamp, msgType, dataPtr, user);
+#endif
 }
 
 /*

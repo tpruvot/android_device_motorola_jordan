@@ -23,6 +23,7 @@ on post-fs
 
 # Other global env variables
     export DSP_PATH /system/lib/dsp
+    export BOOTCLASSPATH $BOOTCLASSPATH:/system/framework/com.ti.omap.omap_mm_library.jar
 
 # Mount tmpfs
     mkdir /tmp 0777 root root

@@ -41,6 +41,27 @@ TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a8
 TARGET_OMAP3 := true
 COMMON_GLOBAL_CFLAGS += -DTARGET_OMAP3
 
+# Kernel info
+BOARD_KERNEL_BASE := 0x80000000
+BOARD_PAGE_SIZE := 0x00000800
+
+# Omap4 mmlib ti overlay
+FRAMEWORKS_BASE_SUBDIRS += $(addsuffix /java, omapmmlib)
+
+BOARD_USES_TI_CAMERA_HAL := true
+HARDWARE_OMX := true
+ifdef HARDWARE_OMX
+OMX_JPEG := true
+OMX_VENDOR := ti
+OMX_VENDOR_INCLUDES := hardware/ti/omx/system/src/openmax_il/omx_core/inc
+OMX_VENDOR_WRAPPER := TI_OMX_Wrapper
+BOARD_OPENCORE_LIBRARIES := libOMX_Core liblog
+BOARD_OPENCORE_FLAGS := -DHARDWARE_OMX=1
+TARGET_USE_OMX_RECOVERY := true
+BUILD_WITH_TI_AUDIO := 1
+BUILD_PV_VIDEO_ENCODERS := 0
+endif
+
 # Wifi related defines
 BOARD_WLAN_DEVICE           := wl1271
 WPA_SUPPLICANT_VERSION      := VER_0_6_X
@@ -67,11 +88,6 @@ BOARD_RECOVERYIMAGE_MAX_SIZE := $(call image-size-from-data-size,0x00500000)
 BOARD_SYSTEMIMAGE_MAX_SIZE := $(call image-size-from-data-size,0x07500000)
 BOARD_USERDATAIMAGE_MAX_SIZE := $(call image-size-from-data-size,0x04ac0000)
 BOARD_FLASH_BLOCK_SIZE := 131072
-
-HARDWARE_OMX := true
-TARGET_USE_OMX_RECOVERY := true
-BUILD_WITH_TI_AUDIO := 1
-BUILD_PV_VIDEO_ENCODERS := 1
 
 BOARD_USE_USB_MASS_STORAGE_SWITCH := true
 BOARD_NO_RGBX_8888 := true

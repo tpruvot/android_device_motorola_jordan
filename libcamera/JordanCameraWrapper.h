@@ -54,7 +54,11 @@ private:
 
     static void notifyCb(int32_t msgType, int32_t ext1, int32_t ext2, void* user);
     static void dataCb(int32_t msgType, const sp<IMemory>& dataPtr, void* user);
+#ifdef OMAP_ENHANCEMENT
+    static void dataCbTimestamp(nsecs_t timestamp, int32_t msgType, const sp<IMemory>& dataPtr, void* user, uint32_t offset, uint32_t stride);
+#else
     static void dataCbTimestamp(nsecs_t timestamp, int32_t msgType, const sp<IMemory>& dataPtr, void* user);
+#endif
     void fixUpBrokenGpsLatitudeRef(const sp<IMemory>& dataPtr);
 
     sp<CameraHardwareInterface> mMotoInterface;

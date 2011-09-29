@@ -99,10 +99,28 @@ PRODUCT_PACKAGES += \
 	su
 
 # for jpeg hw encoder/decoder
-PRODUCT_PACKAGES += libskiahw libOMX.TI.JPEG.Encoder libOMX.TI.JPEG.decoder
+PRODUCT_PACKAGES += libskiahw SkLibTiJpeg_Test libOMX.TI.JPEG.Encoder libOMX.TI.JPEG.decoder
 
 # hw video prepost processor (require dsp lib)
 PRODUCT_PACKAGES += libOMX.TI.VPP
+
+# 720P and ITTIAM: closed sources
+# PRODUCT_PACKAGES += libOMX.TI.720P.Decoder libOMX.TI.720P.Encoder
+
+# to fix:
+PRODUCT_PACKAGES += \
+	libOMX.TI.720P.decode \
+	libOMX.TI.720P.encode \
+	libOMX.TI.h264.splt.Encoder \
+	libOMX.TI.mp4.splt.Encoder \
+	libRAM \
+	libskia \
+	libskiagl \
+
+# omap-merge tests
+PRODUCT_PACKAGES += com.ti.omap.omap_mm_library libomap_mm_library_jni libflashhwrenderer camera_test
+# for omap4 lib, set this var
+BOARD_GPS_LIBRARIES := gps.jordan.so
 
 # Add DroidSSHd (dropbear) Management App - tpruvot/android_external_droidsshd @ github
 PRODUCT_PACKAGES += DroidSSHd
