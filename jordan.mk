@@ -102,7 +102,7 @@ PRODUCT_PACKAGES += \
 # for jpeg hw encoder/decoder
 PRODUCT_PACKAGES += libskiahw libOMX.TI.JPEG.Encoder libOMX.TI.JPEG.decoder
 
-# video post processor
+# hw video prepost processor (require dsp lib)
 PRODUCT_PACKAGES += libOMX.TI.VPP
 
 # Add DroidSSHd (dropbear) Management App - tpruvot/android_external_droidsshd @ github
