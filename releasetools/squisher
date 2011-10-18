@@ -187,6 +187,7 @@ echo
 echo "Package complete: $OUTFILE"
 cat $img.md5sum
 echo
+cat $OUT/system/build.prop | grep ro.build.date=
 )
 
 exit 0
