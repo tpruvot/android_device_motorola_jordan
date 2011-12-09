@@ -40,4 +40,6 @@ cpufreq_boosted.ko: symsearch.ko
 cpufreq_conservative.ko:
 sio_iosched.ko:
 xt_multiport.ko:
+camise.ko:
+camera.ko: symsearch.ko camise.ko
 

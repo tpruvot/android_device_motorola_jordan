@@ -30,6 +30,7 @@ PRODUCT_COPY_FILES += \
 	device/motorola/jordan/prebuilt/etc/init.d/03adbd:system/etc/init.d/03adbd \
 	device/motorola/jordan/prebuilt/etc/init.d/04filesystems:system/etc/init.d/04filesystems \
 	device/motorola/jordan/prebuilt/etc/init.d/05mountsd:system/etc/init.d/05mountsd \
+	$(DEVICE_PREBUILT)/etc/init.d/07camera:system/etc/init.d/07camera \
 	device/motorola/jordan/prebuilt/etc/init.d/08backlight:system/etc/init.d/08backlight \
 	device/motorola/jordan/prebuilt/etc/init.d/80kineto:system/etc/init.d/80kineto \
 	device/motorola/jordan/prebuilt/etc/init.d/90multitouch:system/etc/init.d/90multitouch \
