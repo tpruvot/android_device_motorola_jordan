@@ -124,6 +124,7 @@ PRODUCT_PACKAGES += e2fsck
 
 # Add DroidSSHd (dropbear) Management App - tpruvot/android_external_droidsshd @ github
 PRODUCT_PACKAGES += DroidSSHd dropbear dropbearkey sftp-server scp ssh
+PRODUCT_PACKAGES += RomUpdater
 
 # CM9 apps
 #PRODUCT_PACKAGES += AndroidTerm
