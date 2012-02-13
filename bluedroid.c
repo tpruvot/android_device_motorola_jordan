@@ -448,7 +448,8 @@ int bt_is_enabled() {
         goto out;
     }
 
-    ret = hci_test_bit(HCI_UP, &dev_info.flags);
+    //to fix in ics
+    //ret = hci_test_bit(HCI_UP, &dev_info.flags);
 
 out:
     if (hci_sock >= 0) close(hci_sock);
