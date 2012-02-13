@@ -62,6 +62,11 @@ BOARD_SOFTAP_DEVICE         := wl1271
 AP_CONFIG_DRIVER_WILINK     := true
 WIFI_DRIVER_FW_AP_PATH      := "/system/etc/wifi/fw_tiwlan_ap.bin"
 WPA_SUPPL_APPROX_USE_RSSI   := true
+# CM9
+WIFI_AP_DRIVER_MODULE_PATH  := "/system/lib/modules/tiap_drv.ko"
+WIFI_AP_DRIVER_MODULE_NAME  := tiap_drv
+WIFI_AP_FIRMWARE_LOADER     := wlan_ap_loader
+WIFI_AP_DRIVER_MODULE_ARG   := ""
 
 BOARD_USE_YUV422I_DEFAULT_COLORFORMAT := true
 BOARD_EGL_CFG := device/motorola/jordan/egl.cfg
@@ -70,7 +75,7 @@ DEFAULT_FB_NUM := 0
 BOARD_CUSTOM_USB_CONTROLLER := ../../device/motorola/jordan/UsbController.cpp
 
 BOARD_HAVE_BLUETOOTH := true
-BOARD_CUSTOM_BLUEDROID := ../../../device/motorola/jordan/bluedroid.c
+TARGET_CUSTOM_BLUEDROID := ../../../device/motorola/jordan/bluedroid.c
 
 BOARD_MASS_STORAGE_FILE_PATH := "/sys/devices/platform/usb_mass_storage/lun0/file"
 TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/devices/platform/usb_mass_storage/lun0/file"
