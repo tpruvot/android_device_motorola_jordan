@@ -25,6 +25,9 @@ chmod 777 /dev/graphics
 chmod 666 /dev/graphics/fb0
 chmod 666 /dev/video*
 
+chmod a+rw /sys/class/leds/spotlight/*
+chmod a+rw /sys/class/leds/torch-flash/*
+
 if [ -d /system/bootmenu/init.d ]; then
     chmod 755 /system/bootmenu/init.d/*
     run-parts /system/bootmenu/init.d/
