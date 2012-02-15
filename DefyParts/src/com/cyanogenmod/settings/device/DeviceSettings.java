@@ -17,7 +17,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class SettingsActivity extends PreferenceActivity implements OnPreferenceChangeListener {
+public class DeviceSettings extends PreferenceActivity implements OnPreferenceChangeListener {
     private static final String TAG = "DefyParts";
 
     private PreferenceCategory generalSettings;
