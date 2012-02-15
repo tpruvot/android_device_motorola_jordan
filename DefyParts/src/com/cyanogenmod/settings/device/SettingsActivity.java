@@ -1,4 +1,4 @@
-package com.cyanogenmod.defyparts;
+package com.cyanogenmod.settings.device;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
