@@ -106,6 +106,7 @@ echo 0 > /sys/class/leds/blue/brightness
 
 # to allow "eat"
 ln -s /sdcard /mnt/sdcard
+cd /sbin && ln -s adbd adbd.root
 
 /sbin/recovery_stable
 

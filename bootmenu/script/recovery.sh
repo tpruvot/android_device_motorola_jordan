@@ -102,6 +102,7 @@ echo 1 > /sys/class/leds/button-backlight/brightness
 
 # to allow "eat"
 ln -s /sdcard /mnt/sdcard
+cd /sbin && ln -s adbd adbd.root
 
 /sbin/recovery
 

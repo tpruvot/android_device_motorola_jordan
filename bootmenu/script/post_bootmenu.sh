@@ -25,16 +25,17 @@ chmod 777 /dev/graphics
 chmod 666 /dev/graphics/fb0
 chmod 666 /dev/video*
 
-chmod a+rw /sys/class/leds/spotlight/*
-chmod a+rw /sys/class/leds/torch-flash/*
+chmod +w /sys/class/leds/spotlight/*
+chmod +w /sys/class/leds/torch-flash/*
 
 if [ -d /system/bootmenu/init.d ]; then
     chmod 755 /system/bootmenu/init.d/*
-    run-parts /system/bootmenu/init.d/
+    run-parts /system/bootmenu/init.d
 fi
 
+# not made automatically in ics ? to check in vendor/cm
 chmod 755 /system/etc/init.d/*
-run-parts /system/etc/init.d/
+run-parts /system/etc/init.d
 
 # Clean market cache
 rm -f /data/data/com.android.providers.downloads/cache/*
@@ -44,7 +45,7 @@ rm -f /data/data/com.android.providers.downloads/cache/*
 
 
 # fast button warning (to check when script is really used)
-if [ -f /sbin/busybox ]; then
+if [ -f /sbin/adbd.root ]; then
 
 echo 1 > /sys/class/leds/button-backlight/brightness
 usleep 50000
