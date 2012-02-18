@@ -67,6 +67,8 @@ WIFI_AP_DRIVER_MODULE_PATH  := "/system/lib/modules/tiap_drv.ko"
 WIFI_AP_DRIVER_MODULE_NAME  := tiap_drv
 WIFI_AP_FIRMWARE_LOADER     := wlan_ap_loader
 WIFI_AP_DRIVER_MODULE_ARG   := ""
+BOARD_HOSTAPD_DRIVER        := true
+BOARD_HOSTAPD_DRIVER_NAME   := wilink
 
 BOARD_USE_YUV422I_DEFAULT_COLORFORMAT := true
 BOARD_EGL_CFG := device/motorola/jordan/egl.cfg
