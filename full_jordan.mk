@@ -31,5 +31,5 @@ $(call inherit-product-if-exists, vendor/motorola/jordan/jordan-vendor.mk)
 PRODUCT_NAME := full_jordan
 PRODUCT_DEVICE := jordan
 PRODUCT_BRAND := Android
-PRODUCT_MODEL := MB525
+PRODUCT_MODEL := MB526
 PRODUCT_MANUFACTURER := motorola
