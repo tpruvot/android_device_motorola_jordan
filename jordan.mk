@@ -68,7 +68,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
 	hcitool hciattach hcidump \
 	libaudioutils audio.a2dp.default audio_policy.jordan \
-	libaudiohw_legacy audio.primary.omap3 \
+	libaudiohw_legacy audio.primary.jordan \
 
 # ICS graphics
 PRODUCT_PACKAGES += libGLESv2 libEGL libGLESv1_CM
