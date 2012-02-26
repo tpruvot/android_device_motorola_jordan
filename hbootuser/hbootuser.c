@@ -296,11 +296,11 @@ int main(int argc, char **argv) {
 	}
 */
 	n = 0;
-	handle_file2("/sdcard/hboot/boot",       0, &buffers[n++]);
-	handle_file2("/sdcard/hboot/kernel",     1, &buffers[n++]);
-	handle_file2("/sdcard/hboot/ramfs",      2, &buffers[n++]);
-	handle_file2("/sdcard/hboot/devtree",    3, &buffers[n++]);
-	handle_file2("/sdcard/hboot/cmdline",    4, &buffers[n++]);
+	handle_file2("/system/2ndboot/boot",       0, &buffers[n++]);
+	handle_file2("/system/2ndboot/kernel",     1, &buffers[n++]);
+	handle_file2("/system/2ndboot/ramdisk",    2, &buffers[n++]);
+	handle_file2("/system/2ndboot/devtree",    3, &buffers[n++]);
+	handle_file2("/system/2ndboot/cmdline",    4, &buffers[n++]);
 
 	if (fp) fclose(fp);
 	fp = NULL;
