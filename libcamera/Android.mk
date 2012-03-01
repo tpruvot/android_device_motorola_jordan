@@ -10,9 +10,6 @@ LOCAL_MODULE         := camera.jordan
 LOCAL_SRC_FILES      := cameraHal.cpp
 LOCAL_PRELINK_MODULE := false
 
-# kept as cm7 reference from (defy) omap3-compat liboverlay
-# LOCAL_SRC_FILES += v4l2_utils.c overlay.cpp
-
 LOCAL_C_INCLUDES += $(ANDROID_BUILD_TOP)/frameworks/base/include
 
 LOCAL_SHARED_LIBRARIES += \
