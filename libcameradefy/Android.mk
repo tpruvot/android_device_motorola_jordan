@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-ifeq ($(BOARD_QCOM_BASED_CAMERA_HAL),true)
+ifeq ($(BOARD_OVERLAY_BASED_CAMERA_HAL),true)
 
 include $(CLEAR_VARS)
 
@@ -10,7 +10,10 @@ LOCAL_MODULE         := camera.jordan
 LOCAL_SRC_FILES      := cameraHal.cpp
 LOCAL_PRELINK_MODULE := false
 
-LOCAL_SRC_FILES += v4l2_utils.c overlay.cpp
+# kept as cm7 reference from (defy) omap3-compat liboverlay
+# LOCAL_SRC_FILES += v4l2_utils.c overlay.cpp
+
+LOCAL_C_INCLUDES += $(ANDROID_BUILD_TOP)/frameworks/base/include
 
 LOCAL_SHARED_LIBRARIES += \
     liblog \
@@ -20,10 +23,10 @@ LOCAL_SHARED_LIBRARIES += \
     libmedia \
     libhardware \
     libcamera_client \
+    libdl \
+    libui \
     libcamera \
-
-LOCAL_SHARED_LIBRARIES += libdl
 
 include $(BUILD_SHARED_LIBRARY)
 
-endif #BOARD_QCOM_BASED_CAMERA_HAL
+endif # BOARD_OVERLAY_BASED_CAMERA_HAL

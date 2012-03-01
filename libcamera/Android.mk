@@ -14,7 +14,7 @@ LOCAL_PATH:= $(call my-dir)
 
 #include $(BUILD_SHARED_LIBRARY)
 
-ifneq ($(BOARD_QCOM_BASED_CAMERA_HAL),true)
+ifneq ($(BOARD_OVERLAY_BASED_CAMERA_HAL),true)
 
 include $(CLEAR_VARS)
 
