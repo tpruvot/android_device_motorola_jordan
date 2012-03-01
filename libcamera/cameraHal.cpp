@@ -31,8 +31,8 @@
  */
 
 #define LOG_TAG "CameraHAL"
-#define LOG_NDEBUG 0
-#define LOG_PARAMS 0
+//#define LOG_NDEBUG 0
+//#define LOG_PARAMS 0
 
 #include <hardware/camera.h>
 #include <ui/Overlay.h>
@@ -334,7 +334,7 @@ void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
 {
     struct legacy_camera_device *lcdev = (struct legacy_camera_device *) user;
 
-    LOGD("CameraHAL_DataTSCb: timestamp:%lld msg_type:%d user:%p\n",
+    LOGV("CameraHAL_DataTSCb: timestamp:%lld msg_type:%d user:%p\n",
           timestamp /1000, msg_type, user);
 
     if (lcdev->data_callback != NULL && lcdev->request_memory != NULL) {
