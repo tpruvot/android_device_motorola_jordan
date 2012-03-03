@@ -56,3 +56,8 @@ symsearch
 multitouch.ko
 symsearch
 
+ionpvr.ko
+symsearch
+
+ion.ko
+ionpvr
