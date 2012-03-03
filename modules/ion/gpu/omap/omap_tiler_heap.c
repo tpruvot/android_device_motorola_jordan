@@ -24,10 +24,10 @@
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
-#include <mach/tiler.h>
+#include "mach/tiler.h"
 #include <asm/mach/map.h>
 #include <asm/page.h>
-
+#include "../linux3-compat.h"
 #include "../ion_priv.h"
 
 static int omap_tiler_heap_allocate(struct ion_heap *heap,

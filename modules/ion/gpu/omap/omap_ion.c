@@ -29,7 +29,6 @@ EXPORT_SYMBOL(omap_ion_device);
 
 int num_heaps;
 struct ion_heap **heaps;
-#if defined(CONFIG_ARCH_OMAP4)
 struct ion_heap *tiler_heap;
 static struct ion_heap *nonsecure_tiler_heap;
 
@@ -46,13 +45,11 @@ int omap_ion_nonsecure_tiler_alloc(struct ion_client *client,
 		return -ENOMEM;
 	return omap_tiler_alloc(nonsecure_tiler_heap, client, data);
 }
-#endif
 
 long omap_ion_ioctl(struct ion_client *client, unsigned int cmd,
 		    unsigned long arg)
 {
 	switch (cmd) {
-#if defined(CONFIG_ARCH_OMAP4)
 	case OMAP_ION_TILER_ALLOC:
 	{
 		struct omap_ion_tiler_alloc_data data;
@@ -73,7 +70,6 @@ long omap_ion_ioctl(struct ion_client *client, unsigned int cmd,
 			return -EFAULT;
 		break;
 	}
-#endif
 	default:
 		pr_err("%s: Unknown custom ioctl\n", __func__);
 		return -ENOTTY;
@@ -101,7 +97,6 @@ int omap_ion_probe(struct platform_device *pdev)
 	/* create the heaps as specified in the board file */
 	for (i = 0; i < num_heaps; i++) {
 		struct ion_platform_heap *heap_data = &pdata->heaps[i];
-#if defined(CONFIG_ARCH_OMAP4)
 		if (heap_data->type == OMAP_ION_HEAP_TYPE_TILER) {
 			heaps[i] = omap_tiler_heap_create(heap_data);
 			if (heap_data->id == OMAP_ION_HEAP_NONSECURE_TILER)
@@ -109,7 +104,6 @@ int omap_ion_probe(struct platform_device *pdev)
 			else
 				tiler_heap = heaps[i];
 		} else
-#endif
 			heaps[i] = ion_heap_create(heap_data);
 
 		if (IS_ERR_OR_NULL(heaps[i])) {
@@ -128,11 +122,9 @@ int omap_ion_probe(struct platform_device *pdev)
 err:
 	for (i = 0; i < num_heaps; i++) {
 		if (heaps[i]) {
-#if defined(CONFIG_ARCH_OMAP4)
 			if (heaps[i]->type == OMAP_ION_HEAP_TYPE_TILER)
 				omap_tiler_heap_destroy(heaps[i]);
 			else
-#endif
 				ion_heap_destroy(heaps[i]);
 		}
 	}
@@ -147,11 +139,9 @@ int omap_ion_remove(struct platform_device *pdev)
 
 	ion_device_destroy(idev);
 	for (i = 0; i < num_heaps; i++)
-#if defined(CONFIG_ARCH_OMAP4)
 		if (heaps[i]->type == OMAP_ION_HEAP_TYPE_TILER)
 			omap_tiler_heap_destroy(heaps[i]);
 		else
-#endif
 			ion_heap_destroy(heaps[i]);
 	kfree(heaps);
 	return 0;
@@ -175,4 +165,3 @@ void __exit ion_exit(void)
 
 //module_init(ion_init);
 //module_exit(ion_exit);
-

@@ -1200,10 +1200,9 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
 	while (*p) {
 		parent = *p;
 		entry = rb_entry(parent, struct ion_heap, node);
-
+break;  // <<---------------------------------------------------------------- to fix :/
 		if (heap->id < entry->id) {
 			p = &(*p)->rb_left;
-		pr_info("%s: entry id %x, %x left %p\n", __func__, entry->id, entries, p);
 		} else if (heap->id > entry->id ) {
 			p = &(*p)->rb_right;
 		} else {
@@ -1211,11 +1210,13 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
 				"id %d\n", __func__, heap->id);
 			goto end;
 		}
-		entries++; break;
+		entries++;
 	}
 	rb_link_node(&heap->node, parent, p);
-#if defined(CONFIG_DEBUG_FS)
+#if 0 // <<------------------------------------------------------------------ to fix :/
 	rb_insert_color(&heap->node, &dev->heaps);
+#endif
+#if defined(CONFIG_DEBUG_FS)
 	debugfs_create_file(heap->name, 0664, dev->debug_root, heap,
 			    &debug_heap_fops);
 #endif
