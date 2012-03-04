@@ -420,12 +420,12 @@ void CameraHAL_FixupParams(CameraParameters &settings)
 /* Hardware Camera interface handlers. */
 int camera_set_preview_window(struct camera_device * device, struct preview_stream_ops *window) {
     int rv = -EINVAL;
-    const int kBufferCount = 4;
+    const int kBufferCount = 6;
     struct legacy_camera_device *lcdev = to_lcdev(device);
 
-    LOGV("camera_set_preview_window : Window :%p\n", window);
+    LOGV("%s: Window :%p\n", __FUNCTION__, window);
     if (device == NULL) {
-        LOGE("camera_set_preview_window : Invalid device.\n");
+        LOGE("%s: Invalid device.\n", __FUNCTION__);
         return -EINVAL;
     }
 
@@ -440,7 +440,7 @@ int camera_set_preview_window(struct camera_device * device, struct preview_stre
         return -EINVAL;
     }
 
-    LOGD("%s : OK window is %p", __FUNCTION__, window);
+    LOGD("%s: OK window is %p", __FUNCTION__, window);
 
     if (!lcdev->gralloc) {
         hw_module_t const* module;
@@ -460,7 +460,7 @@ int camera_set_preview_window(struct camera_device * device, struct preview_stre
     }
     LOGD("%s: OK get_min_undequeued_buffer_count", __FUNCTION__);
 
-    LOGD("%s: bufs:%i", __FUNCTION__, min_bufs);
+    LOGD("%s: minimum buffer count is %i", __FUNCTION__, min_bufs);
     if (min_bufs >= kBufferCount) {
         LOGE("%s: min undequeued buffer count %i is too high (expecting at most %i)", __FUNCTION__, min_bufs, kBufferCount - 1);
     }
