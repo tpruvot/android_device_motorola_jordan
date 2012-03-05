@@ -34,7 +34,6 @@ UTC_DATE := $(shell date +%s)
 DATE     := $(shell date +%Y%m%d)
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
-    BUILD_ID=GWK74 \
     PRODUCT_NAME=${PRODUCT_MODEL}_${PRODUCT_SFX} \
     TARGET_DEVICE=umts_jordan \
     BUILD_FINGERPRINT=MOTO/MB526_RTDACH/umts_jordan:2.3.4/4.5.1-134_DFP-74/1313117579:user/release-keys \
