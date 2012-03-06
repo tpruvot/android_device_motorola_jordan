@@ -31,7 +31,7 @@
  */
 
 #define LOG_TAG "CameraHAL"
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_FULL_PARAMS 0
 
 //#define STORE_METADATA_IN_BUFFER
@@ -414,7 +414,7 @@ void CameraHAL_FixupParams(CameraParameters &settings)
         settings.set(android::CameraParameters::KEY_SUPPORTED_EFFECTS, "none,mono,negative,sepia");
 
     if (!settings.get(android::CameraParameters::KEY_SUPPORTED_SCENE_MODES))
-        settings.set(android::CameraParameters::KEY_SUPPORTED_EFFECTS,
+        settings.set(android::CameraParameters::KEY_SUPPORTED_SCENE_MODES,
                      "auto,portrait,landscape,action,night-portrait,sunset,steadyphoto");
 
     settings.set(android::CameraParameters::KEY_EXPOSURE_COMPENSATION, "0");
