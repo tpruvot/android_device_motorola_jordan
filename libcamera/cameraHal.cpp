@@ -31,11 +31,10 @@
  */
 
 #define LOG_TAG "CameraHAL"
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_FULL_PARAMS
 //#define LOG_EACH_FRAMES
 
-#define DISPLAY_RGB565
 //#define STORE_METADATA_IN_BUFFER
 
 #include <hardware/camera.h>
@@ -51,11 +50,15 @@ using namespace std;
 
 #define YUV_CAM_FORMAT CameraParameters::PIXEL_FORMAT_YUV422I
 
+#define DISPLAY_RGB565
+
+#ifdef DISPLAY_RGB565
+#define OVERLAY_FORMAT OVERLAY_FORMAT_RGB565
+#define HAL_PIXEL_FORMAT HAL_PIXEL_FORMAT_RGB_565
+#else
 #define OVERLAY_FORMAT OVERLAY_FORMAT_RGBA8888
 #define HAL_PIXEL_FORMAT HAL_PIXEL_FORMAT_RGBA_8888
-
-//#define OVERLAY_FORMAT OVERLAY_FORMAT_RGB565
-//#define HAL_PIXEL_FORMAT HAL_PIXEL_FORMAT_RGB_565
+#endif
 
 //Atrix :
 //#define YUV_CAM_FORMAT CameraParameters::PIXEL_FORMAT_YUV420P
@@ -92,6 +95,8 @@ camera_module_t HAL_MODULE_INFO_SYM = {
 
 
 namespace android {
+
+int camera_set_preview_window(struct camera_device * device, struct preview_stream_ops *window);
 
 struct legacy_camera_device {
     camera_device_t device;
@@ -333,7 +338,7 @@ void CameraHAL_ProcessPreviewData(char *frame, size_t size, legacy_camera_device
                 int tries = 5;
                 int err = 0;
                 void *vaddr;
-                err = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, GRALLOC_USAGE_SW_WRITE_OFTEN,
+                err = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER,
                                            0, 0, lcdev->previewWidth, lcdev->previewHeight, &vaddr);
                 while (err && tries) {
                     // Pano frames almost always need a retry... or not
@@ -347,7 +352,7 @@ void CameraHAL_ProcessPreviewData(char *frame, size_t size, legacy_camera_device
                 if (!err) {
                     // The data we get is in YUV... but Window is RGBA8888. It needs to be converted
                     switch (lcdev->previewFormat) {
-#if (OVERLAY_FORMAT == OVERLAY_FORMAT_RGBA8888)
+#ifndef DISPLAY_RGB565
                     case OVERLAY_FORMAT_YUV422I:
                         Yuv422iToRgba8888((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
                         break;
@@ -356,10 +361,10 @@ void CameraHAL_ProcessPreviewData(char *frame, size_t size, legacy_camera_device
                         break;
 #else
                     case OVERLAY_FORMAT_YUV422I:
-                        Yuv422iToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
+                        Yuv422iToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
                         break;
                     case OVERLAY_FORMAT_YUV420SP:
-                        Yuv420spToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
+                        Yuv420spToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
                         break;
 #endif
                     case OVERLAY_FORMAT:
@@ -502,7 +507,7 @@ int CameraHAL_GetCam_Info(int camera_id, struct camera_info *info)
     return rv;
 }
 
-void CameraHAL_FixupParams(legacy_camera_device *lcdev, CameraParameters &settings)
+void CameraHAL_FixupParams(struct camera_device * device, CameraParameters &settings)
 {
     /* Motorola omap cameras doesn't support YUV420sp...
      * it advertises so, but then sends "yuv422i-yuyv"
@@ -550,8 +555,8 @@ void CameraHAL_FixupParams(legacy_camera_device *lcdev, CameraParameters &settin
     //if (!settings.get("zoom-ratios"))
         settings.set("zoom-ratios", "100,200,300,400,500,600");
 
-    if (!settings.get("max-zoom"))
-        settings.set("max-zoom", "5");
+    //if (!settings.get("max-zoom"))
+        settings.set("max-zoom", "4");
 
     /* defy: required to prevent panorama crash, but require also opengl ui */
     const char *fps_range_values = "(1000,30000),(1000,25000),(1000,20000),"
@@ -564,10 +569,13 @@ void CameraHAL_FixupParams(legacy_camera_device *lcdev, CameraParameters &settin
         settings.set(android::CameraParameters::KEY_PREVIEW_FPS_RANGE, preview_fps_range);
 
     // Fix preview ratio (for wide picture and video formats)
+    // should be fixed in camera app... ratio defines, to allow small sizes (panorama)
+
     const char *target_size = settings.get("picture-size");
     float ratio = 0.0;
     int height = 0, width = atoi(target_size);
     char *sh;
+    bool need_reset = false;
     if (width > 0) {
         sh = strstr(target_size, "x");
         height = atoi(sh + 1);
@@ -575,11 +583,18 @@ void CameraHAL_FixupParams(legacy_camera_device *lcdev, CameraParameters &settin
         if (ratio < 0.70 && width >= 640) {
             settings.setPreviewSize(848, 480);
             settings.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "848x480");
+            need_reset = true;
         } else if (width == 848) {
             settings.setPreviewSize(640, 480);
             settings.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "640x480");
+            need_reset = true;
         }
         LOGV("%s: target size %s, ratio %f", __FUNCTION__, target_size, ratio);
+    }
+
+    if (need_reset) {
+        struct legacy_camera_device *lcdev = to_lcdev(device);
+        camera_set_preview_window(device, lcdev->window);
     }
 
     LOGD("Parameters fixed up");
@@ -844,7 +859,7 @@ char* camera_get_parameters(struct camera_device * device) {
     struct legacy_camera_device *lcdev = to_lcdev(device);
     char *rc = NULL;
     CameraParameters params(lcdev->hwif->getParameters());
-    CameraHAL_FixupParams(lcdev, params);
+    CameraHAL_FixupParams(device, params);
     log_camera_params(__FUNCTION__, params);
     rc = strdup((char *)params.flatten().string());
     return rc;
