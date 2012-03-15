@@ -9,7 +9,7 @@ source /system/bootmenu/script/_config.sh
 mount -o remount,rw /
 rm -f /*.rc
 rm -f /*.sh
-rm -rf /osh
+rm -f /osh
 rm -rf /preinstall
 cp -f /system/bootmenu/2nd-init/* /
 ln -s /init /sbin/ueventd
