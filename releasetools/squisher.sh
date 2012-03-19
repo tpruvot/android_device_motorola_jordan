@@ -7,8 +7,6 @@ VENDOR_TOP=$ANDROID_BUILD_TOP/vendor/motorola/jordan
 
 # Delete unwanted apps
 rm -f $REPACK/ota/system/app/RomManager.apk
-#rm -f $REPACK/ota/system/app/MusicFX.apk
-rm -f $REPACK/ota/system/app/DSPManager.apk
 rm -f $REPACK/ota/system/app/VideoEditor.apk
 
 # Remove big videos
