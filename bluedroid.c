@@ -15,6 +15,7 @@
  */
 
 #define LOG_TAG "bluedroid"
+//#define LOG_NDEBUG 0
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,6 +79,8 @@ static int check_bluetooth_power() {
     int ret = -1;
     char buffer;
 
+    LOGV(__FUNCTION__);
+
     if (rfkill_id == -1) {
         if (init_rfkill()) goto out;
     }
@@ -105,6 +108,7 @@ static int check_bluetooth_power() {
     }
 
 out:
+    LOGV("%s: ret=%d", __FUNCTION__, ret);
     if (fd >= 0) close(fd);
     return ret;
 }
@@ -114,6 +118,7 @@ static int set_bluetooth_power(int on) {
     int fd = -1;
     int ret = -1;
     const char buffer = (on ? '1' : '0');
+    LOGV(__FUNCTION__);
 
     if (rfkill_id == -1) {
         if (init_rfkill()) goto out;
@@ -134,6 +139,7 @@ static int set_bluetooth_power(int on) {
     ret = 0;
 
 out:
+    LOGV("%s: ret=%d", __FUNCTION__, ret);
     if (fd >= 0) close(fd);
     return ret;
 }
@@ -145,6 +151,44 @@ static inline int create_hci_sock() {
              strerror(errno), errno);
     }
     return sk;
+}
+
+static int do_btd_enable()
+{
+    LOGV(__FUNCTION__);
+
+    int ret = -1;
+
+    LOGI("Starting bluetoothd deamon");
+    if (property_set("ctl.start", "bluetoothd") < 0) {
+        LOGE("Failed to start bluetoothd");
+        goto out;
+    }
+    sleep(HCID_START_DELAY_SEC);
+
+    ret = 0;
+out:
+    LOGV("%s: ret=%d", __FUNCTION__, ret);
+    return ret;
+}
+
+static int do_btd_disable()
+{
+    LOGV(__FUNCTION__);
+
+    int ret = -1;
+
+    LOGI("Stopping bluetoothd deamon");
+    if (property_set("ctl.stop", "bluetoothd") < 0) {
+        LOGE("Error stopping bluetoothd");
+        goto out;
+    }
+    usleep(HCID_STOP_DELAY_USEC);
+
+    ret = 0;
+out:
+    LOGV("%s: ret=%d", __FUNCTION__, ret);
+    return ret;
 }
 
 struct RefBase_s {
@@ -230,8 +274,8 @@ static int inc_atomic()
     }
 
     ret = ref.base;
-    LOGV("Exit inc_atomic ref = %d", ret);
 out:
+    LOGV("%s: ref = %d", __FUNCTION__, ret);
     if(fd != -1) close(fd);
     return ret;
 }
@@ -315,13 +359,20 @@ static int dec_atomic()
     }
 
     ret = ref.base;
-    LOGV("Exit inc_atomic ref = %d", ret);
 out:
+    LOGV("%s: ref = %d", __FUNCTION__, ret);
     if(fd != -1) close(fd);
     return ret;
 }
 
-int bt_enable() {
+/* Enable the chip and the HCI interface.
+ *
+ * Responsible for power on and bringing up HCI interface only.
+ * Will block until the HCI interface is ready use.
+ *
+ * Returns 0 on success, -ve on error
+ */
+int bt_chip_enable() {
     LOGV(__FUNCTION__);
 
     int ret = -1;
@@ -336,6 +387,14 @@ int bt_enable() {
 
     if (set_bluetooth_power(1) < 0) {
         goto out;
+    }
+
+    char prop[PROPERTY_VALUE_MAX];
+    property_set("persist.sys.fm_disabled","0");
+    property_get("init.svc.fmradio",prop,"");
+    if (!strcmp(prop, "running")) {
+        property_set("persist.sys.fm_disabled","1");
+        LOGD("FM Radio workaround");
     }
 
     LOGI("Starting hciattach daemon");
@@ -362,28 +421,28 @@ int bt_enable() {
         goto out;
     }
 
-    LOGI("Starting bluetoothd deamon");
-    if (property_set("ctl.start", "bluetoothd") < 0) {
-        LOGE("Failed to start bluetoothd");
-        set_bluetooth_power(0);
-        goto out;
-    }
-    sleep(HCID_START_DELAY_SEC);
-
-    ret = 0;
+    ret = do_btd_enable();
 
 out:
     if (hci_sock >= 0) close(hci_sock);
 
-    if(0 == ret)
-    {
-        inc_atomic();
+    if(0 == ret) {
+        int refcount = inc_atomic();
         LOGV("after inc : reference count = %d", refcount);
     }
+
+    LOGV("%s: ret=%d", __FUNCTION__, ret);
     return ret;
 }
 
-int bt_disable() {
+/* Disable the chip and the HCI interface.
+ *
+ * Responsbile for pulling down the HCI interface and powering down
+ * the chip. Will block until power down is complete.
+ *
+ * Returns 0 on success, -ve on error
+ */
+int bt_chip_disable() {
     LOGV(__FUNCTION__);
 
     int ret = -1;
@@ -397,12 +456,8 @@ int bt_disable() {
         return 0;
     }
 
-    LOGI("Stopping bluetoothd deamon");
-    if (property_set("ctl.stop", "bluetoothd") < 0) {
-        LOGE("Error stopping bluetoothd");
-        goto out;
-    }
-    usleep(HCID_STOP_DELAY_USEC);
+    ret = do_btd_disable();
+    if (ret) goto out;
 
     hci_sock = create_hci_sock();
     if (hci_sock < 0) goto out;
@@ -420,10 +475,14 @@ int bt_disable() {
     ret = 0;
 
 out:
+    LOGV("%s: ret=%d", __FUNCTION__, ret);
     if (hci_sock >= 0) close(hci_sock);
     return ret;
 }
 
+/*
+ * Returns 1 if enabled, 0 if disabled, and -ve on error
+ */
 int bt_is_enabled() {
     LOGV(__FUNCTION__);
 
@@ -431,6 +490,14 @@ int bt_is_enabled() {
     int ret = -1;
     struct hci_dev_info dev_info;
 
+    char prop[PROPERTY_VALUE_MAX];
+    property_get("persist.sys.fm_disabled",prop,"");
+    if (!strcmp(prop, "1")) {
+        usleep(HCID_STOP_DELAY_USEC);
+        hci_sock = create_hci_sock();
+        ioctl(hci_sock, HCIDEVDOWN, HCI_DEV_ID);
+        LOGD("FM Radio turned off");
+    }
 
     // Check power first
     ret = check_bluetooth_power();
@@ -451,7 +518,54 @@ int bt_is_enabled() {
     ret = hci_test_bit(HCI_UP, &dev_info.flags);
 
 out:
+    LOGV("%s: ret=%d", __FUNCTION__, ret);
     if (hci_sock >= 0) close(hci_sock);
+    return ret;
+}
+
+/* Enable the bluetooth interface.
+ *
+ * Responsible for power on, bringing up HCI interface, and starting daemons.
+ * Will block until the HCI interface and bluetooth daemons are ready to
+ * use.
+ *
+ * Returns 0 on success, -ve on error
+*/
+int bt_enable() {
+    LOGV(__FUNCTION__);
+
+    int ret = bt_chip_enable();
+
+    if (ret)
+        goto out;
+
+    if ((ret = do_btd_enable()) != 0)
+        bt_chip_disable();
+
+out:
+    LOGV("%s: ret=%d", __FUNCTION__, ret);
+    return ret;
+}
+
+/* Disable the bluetooth interface.
+ *
+ * Responsbile for stopping daemons, pulling down the HCI interface, and
+ * powering down the chip. Will block until power down is complete, and it
+ * is safe to immediately call enable().
+ *
+ * Returns 0 on success, -ve on error
+*/
+int bt_disable() {
+    LOGV(__FUNCTION__);
+
+    int ret;
+
+    do_btd_disable();
+
+    /* even if do_btd_disable fails, we'll try to disable the chip anyway */
+    ret = bt_chip_disable();
+out:
+    LOGV("%s: ret=%d", __FUNCTION__, ret);
     return ret;
 }
 
@@ -463,7 +577,7 @@ int ba2str(const bdaddr_t *ba, char *str) {
 int str2ba(const char *str, bdaddr_t *ba) {
     int i;
     for (i = 5; i >= 0; i--) {
-        ba->b[i] = (uint8_t) strtoul(str, &str, 16);
+        ba->b[i] = (uint8_t) strtoul(str, (char **) &str, 16);
         str++;
     }
     return 0;
