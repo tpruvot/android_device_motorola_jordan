@@ -98,6 +98,25 @@ static int proc_reg_mask_read(char *buffer, char **start, off_t offset, int coun
 	return ret;
 }
 
+static int proc_reg_mask_write(struct file *filp, const char __user *buffer, unsigned long len, void *data) {
+
+	uint32_t newval=0;
+	st_logcap_reg* reg = data;
+
+	if (!len || len >= sizeof(buf)) return -ENOSPC;
+	if (copy_from_user(buf, buffer, len)) return -EFAULT;
+	buf[len] = 0;
+
+	if (sscanf(buf, "0x%x", (uint32_t *) &newval) > 0) {
+		printk(KERN_INFO TAG": mask=0x%x => 0x%x\n", reg->mask_wr, newval);
+		reg->mask_wr = newval;
+	} else {
+		printk(KERN_ERR TAG": wrong parameter, missing hex prefix (0x....) !\n");
+	}
+
+	return len;
+}
+
 static int proc_reg_val_read(char *buffer, char **start, off_t offset, int count, int *eof, void *data) {
 	int ret = 0;
 	st_logcap_reg* reg = data;
@@ -114,10 +133,8 @@ static int proc_reg_val_write(struct file *filp, const char __user *buffer, unsi
 	unsigned short val=0;
 	st_logcap_reg* reg = data;
 
-	if (!len || len >= sizeof(buf))
-		return -ENOSPC;
-	if (copy_from_user(buf, buffer, len))
-		return -EFAULT;
+	if (!len || len >= sizeof(buf)) return -ENOSPC;
+	if (copy_from_user(buf, buffer, len)) return -EFAULT;
 	buf[len] = 0;
 
 	if (sscanf(buf, "0x%x", (uint32_t *) &newval) > 0) {
@@ -132,11 +149,9 @@ static int proc_reg_val_write(struct file *filp, const char __user *buffer, unsi
 				printk(KERN_ERR TAG": cpcap_direct_misc_write error %d !\n", ret);
 			}
 		}
-
 		printk(KERN_INFO TAG": checked val=0x%x\n", val);
-
 	} else
-		printk(KERN_ERR TAG": wrong parameter, missing hexa prefix (0x....) !\n");
+		printk(KERN_ERR TAG": wrong parameter, missing hex prefix (0x....) !\n");
 
 	return len;
 }
@@ -146,7 +161,8 @@ void map_rep(st_logcap_reg *rst, enum cpcap_reg reg) {
 	scnprintf(buf, sizeof(buf), REG_FMT, reg);
 	rst->proc_dir = proc_mkdir(buf, proc_root);
 
-	rst->proc_mask = create_proc_read_entry("mask", 0444, rst->proc_dir, &proc_reg_mask_read, rst);
+	rst->proc_mask = create_proc_read_entry("mask", 0644, rst->proc_dir, &proc_reg_mask_read, rst);
+	rst->proc_mask->write_proc = proc_reg_mask_write;
 	rst->proc_value = create_proc_read_entry("val", 0644, rst->proc_dir, &proc_reg_val_read, rst);
 	rst->proc_value->write_proc = proc_reg_val_write;
 
@@ -303,7 +319,7 @@ static int __init logcap_init(void) {
 	proc_entry = create_proc_read_entry("log_enable", 0666, proc_root, proc_log_enable_read, NULL);
 	proc_entry->write_proc = proc_log_enable_write;
 
-	if (log_enable & L_DMESG) capcap_dumpnames();
+	if (log_enable & L_DMESG) capcap_dumpnames(log_reg_min, log_reg_max);
 
 	hook_init();
 	hooked = true;
@@ -352,7 +368,7 @@ module_init(logcap_init);
 module_exit(logcap_exit);
 
 MODULE_ALIAS(TAG);
-MODULE_VERSION("1.2");
+MODULE_VERSION("1.3");
 MODULE_DESCRIPTION("Log the cpcap registers read/write");
-MODULE_AUTHOR("Tanguy Pruvot, CyanogenDefy");
+MODULE_AUTHOR("Tanguy Pruvot, Motorola Defy");
 MODULE_LICENSE("GPL");

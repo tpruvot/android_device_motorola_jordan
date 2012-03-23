@@ -3,4 +3,4 @@
 #
 
 obj-m += logcap.o
-logcap-objs := log-cpcap.o regs-cpcap.o hook.o
+logcap-objs := log-cpcap.o regs-cpcap.o hook.o cpcap-regacc.o
