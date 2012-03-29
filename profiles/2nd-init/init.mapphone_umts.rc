@@ -76,7 +76,7 @@ on post-fs
 on post-fs-data
     log "== mapphone: on post-fs-data -------------------"
    
-# Dont delete this line, used as event in bootmenu (cpu settings & postbootmenu)
+    # event in bootmenu (cpu settings & postbootmenu)
     exec /system/bin/logwrapper postbootmenu
 
     # Enable ADB mode (made in init.d)
@@ -103,7 +103,7 @@ on post-fs-data
     mkdir /data/comm_drv 0770 radio radio
     chown dhcp dhcp /data/misc/dhcp
 
-    # following two dirs are for storing BP Flex and PDS files. NVM Daemon is using these folders
+    # following two dirs are BP Flex and PDS files. NVM Daemon is using these folders
     mkdir /data/bp_nvm
     mkdir /data/gki 0770 radio radio
     mkdir /tmp/commdrv 0770 radio radio
