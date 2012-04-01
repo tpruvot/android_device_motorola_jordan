@@ -16,6 +16,7 @@
 
 #include <linux/proc_fs.h>
 
+#define DEBUG_LOGS 0
 #define TAG "xt_qtaguid"
 static struct proc_dir_entry *proc_root = NULL;
 
@@ -170,10 +171,11 @@ static int proc_stats_read(char *page, char **num_items_returned, off_t items_to
 	ppi.num_items_returned = num_items_returned;
 	ppi.items_to_skip = items_to_skip;
 
+#if (DEBUG_LOGS)
 	printk(KERN_DEBUG TAG":proc stats page=%p *num_items_returned=%p off=%ld "
 		"char_count=%d *eof=%d\n", page, *num_items_returned,
 		items_to_skip, char_count, *eof);
-
+#endif
 	if (*eof)
 		return 0;
 
@@ -198,9 +200,9 @@ static int qta_ctrl_parse(const char *input, int count)
 {
 	char cmd;
 	int res=0;
-
+#if (DEBUG_LOGS)
 	printk(KERN_INFO TAG": ctrl=%s\n", input);
-
+#endif
 	cmd = input[0];
 	/* Collect params for commands */
 	switch (cmd) {
@@ -288,9 +290,9 @@ static void __exit qta_owner_mt_exit(void)
 module_init(qta_owner_mt_init);
 module_exit(qta_owner_mt_exit);
 
-MODULE_AUTHOR("Tanguy Pruvot, CyanogenDefy+");
+MODULE_AUTHOR("Tanguy Pruvot, CyanogenDefy");
 MODULE_DESCRIPTION("Xtables: fake socket owner match to xt_qtaguid");
 MODULE_LICENSE("GPL");
-MODULE_VERSION("0.4");
+MODULE_VERSION("0.5");
 MODULE_ALIAS("ipt_qtaguid");
 MODULE_ALIAS("ip6t_qtaguid");
