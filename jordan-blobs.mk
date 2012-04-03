@@ -66,9 +66,9 @@ PRODUCT_COPY_FILES += \
 	device/motorola/jordan/modules/modules.dep:system/lib/modules/modules.dep 
 
 ifdef CM_RELEASE
-	PRODUCT_COPY_FILES += device/motorola/jordan/custom_backup_release.txt:system/etc/custom_backup_list.txt
+	PRODUCT_COPY_FILES += device/motorola/jordan/releasetools/custom_backup_release.txt:system/etc/custom_backup_list.txt
 else
-	PRODUCT_COPY_FILES += device/motorola/jordan/custom_backup_list.txt:system/etc/custom_backup_list.txt
+	PRODUCT_COPY_FILES += device/motorola/jordan/releasetools/custom_backup_list.txt:system/etc/custom_backup_list.txt
 endif
 
 #end of jordan-blobs.mk
