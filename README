@@ -1,4 +1,4 @@
-ICS for Motorola Defy (Android 4.0.3 CM9)
+ICS for the Motorola Defy (Android 4.0.4 CM9)
 
 
 Download:
@@ -19,8 +19,8 @@ You need also to change the vendor/motorola revision to "ics-plus"
 Download RomManager (DELETED BY OUR BUILD SYSTEM)
 =================================================
 
-mkdir vendor/cyanogen/proprietary
-cd vendor/cyanogen && ./get-rommanager
+mkdir -p vendor/cm/proprietary
+cd vendor/cm && ./get-rommanager
 
 
 Build:
