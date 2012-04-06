@@ -1,4 +1,4 @@
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2008 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# temporary fix to allow the migration to moto/mb525
-# ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),jordan)
-ifeq ($(PRODUCT_DEVICE),jordan)
-    include $(all-subdir-makefiles)
-endif
 
+ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),jordan)
+include $(all-subdir-makefiles)
+endif
