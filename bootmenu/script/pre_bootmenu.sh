@@ -89,4 +89,10 @@ if [ -L /tmp ]; then
   mkdir /tmp && busybox mount -t ramfs ramfs /tmp
 fi
 
+# load early the backlight to reduce the button backlight
+if [ -x /system/etc/init.d/08backlight ]; then
+   insmod /system/lib/modules/symsearch.ko 2>/dev/null
+   /etc/init.d/08backlight
+fi
+
 exit 0
