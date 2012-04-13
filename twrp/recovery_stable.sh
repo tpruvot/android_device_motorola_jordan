@@ -1,0 +1,1 @@
+../bootmenu/script/recovery_stable.sh
