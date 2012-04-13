@@ -155,10 +155,14 @@ BOARD_USE_CID_ROTATE_34 := true
 endif
 
 # If kernel sources are present in repo, here is the location
-TARGET_KERNEL_SOURCE := $(ANDROID_BUILD_TOP)/kernel/moto/mb525
-TARGET_KERNEL_CONFIG   := mapphone_mb525_defconfig
+#TARGET_KERNEL_SOURCE := $(ANDROID_BUILD_TOP)/kernel/moto/mb525
+#TARGET_KERNEL_CONFIG := mapphone_mb525_defconfig
+
+# Beware: set only prebuilt OR source+config
 TARGET_PREBUILT_KERNEL := $(ANDROID_BUILD_TOP)/device/motorola/jordan/kernel
 
-# Extra : external modules sources
+# Extra : to build external modules sources
+MOTO_KERNEL_SOURCE := $(ANDROID_BUILD_TOP)/kernel/moto/mb525
+MOTO_KERNEL_CONFIG := mapphone_mb525_defconfig
 TARGET_KERNEL_MODULES_EXT := $(ANDROID_BUILD_TOP)/device/motorola/jordan/modules
 
