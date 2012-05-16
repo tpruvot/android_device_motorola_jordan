@@ -19,10 +19,12 @@ ASKED_MODE=$1
 # scaling 2
 # clk1 300
 # clk2 600
-# clk3 1000
+# clk3 800
+# clk4 1000
 # vsel1 30
 # vsel2 46
-# vsel3 58
+# vsel3 52
+# vsel4 58
 # con_up_threshold 80
 # con_down_threshold 20
 # con_freq_step 5
@@ -68,11 +70,11 @@ param_safe()
   export clk1=300
   export clk2=600
   export clk3=800
-  export clk4=1000
+  export clk4=800
   export vsel1=30
   export vsel2=46
   export vsel3=52
-  export vsel4=58
+  export vsel4=54
   export scaling=2
   export ond_up_threshold=86
   export ond_sampling_rate=50000
