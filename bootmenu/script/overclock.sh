@@ -137,7 +137,6 @@ set_scaling()
         insmod $MODULE_DIR/cpufreq_interactive.ko
       fi
       echo "interactive" > $SCALING_GOVERNOR
-      usleep 500000
       echo $int_min_sample_rate > /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
     ;;
     "2" )
@@ -162,7 +161,6 @@ set_scaling()
       fi
 
       echo boosted > $SCALING_GOVERNOR
-      usleep 200000
       echo $bst_debug_mask
       echo $bst_debug_mask     > /sys/devices/system/cpu/cpufreq/boosted/debug_mask
       echo $bst_awake_ideal_freq
@@ -193,7 +191,6 @@ set_scaling()
         insmod $MODULE_DIR/cpufreq_smartass.ko
       fi
       echo "smartass" > $SCALING_GOVERNOR
-      usleep 500000
       echo $smt_min_cpu_load > /sys/devices/system/cpu/cpu0/cpufreq/smartass/min_cpu_load
       echo $smt_max_cpu_load > /sys/devices/system/cpu/cpu0/cpufreq/smartass/max_cpu_load
       echo $smt_awake_min_freq > /sys/devices/system/cpu/cpu0/cpufreq/smartass/awake_min_freq
@@ -211,7 +208,6 @@ set_scaling()
      * )
     ;;
   esac
-  echo `cat $SCALING_GOVERNOR` set
 }
 
 #############################################################
