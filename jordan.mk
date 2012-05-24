@@ -110,7 +110,10 @@ PRODUCT_PACKAGES += RomUpdater
 
 # CM9 apps
 PRODUCT_PACKAGES += FileManager Torch
-PRODUCT_PACKAGES += Androidian
+PRODUCT_PACKAGES += Androidian Apollo
+
+# Experimental TI OpenLink
+PRODUCT_PACKAGES += libnl_2 iw
 
 # copy all vendor (motorola) kernel modules to system/lib/modules
 PRODUCT_COPY_FILES += $(shell test -d vendor/motorola/jordan/lib/modules &&  \
