@@ -13,6 +13,9 @@ obj-m += clockfix/
 obj-m += logcap/
 obj-m += usbled/
 
+obj-m += proximity/
+#obj-m += ion/
+
 
 PWD := $(shell pwd)
 
