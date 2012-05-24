@@ -37,7 +37,7 @@ ASKED_MODE=$1
 # smt_up_min_freq 1000000
 # smt_wakeup_freq 1000000
 # smt_ramp_up_step 250000
-# bst_awake_ideal_freq 600000
+# bst_awake_ideal_freq 800000
 # bst_down_rate_us 97000
 # bst_max_cpu_load 70
 # bst_min_cpu_load 40
