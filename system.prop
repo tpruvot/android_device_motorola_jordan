@@ -70,9 +70,12 @@ ro.product.use_charge_counter=1
 # all/choice
 hwui.print_config=choice
 
-# force enable or force disable of hw renderer for the listed processes
-#hwui.whitelist=com.android.browser
-hwui.blacklist=com.android.systemui:com.cyanogenmod.CMWallpapers:com.cyanogenmod.trebuchet
+# disable hw renderer by default for stability, except for chrome and browser
+hwui.whitelist=com.android.chrome:com.android.browser
+hwui.blacklist=0
+
+##hwui.whitelist=com.android.browser
+#hwui.blacklist=com.android.systemui:com.cyanogenmod.CMWallpapers:com.cyanogenmod.trebuchet
 
 # CpuGovernorService (require ondemand cpu governor)
 dev.pm.dyn_samplingrate=1
