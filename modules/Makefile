@@ -18,7 +18,7 @@ obj-m += netfilter/
 obj-m += proximity/
 
 # experimental
-#obj-m += ion/
+# obj-m += ion/ ionpvr/
 
 PWD := $(shell pwd)
 

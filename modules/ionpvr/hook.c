@@ -21,7 +21,9 @@
  */
 
 #include "hook.h"
-#include "../../misc/symsearch/symsearch.h"
+//#include "../../misc/symsearch/symsearch.h"
+#include "../symsearch/symsearch.h"
+
 #include <linux/module.h>
 #include <linux/kallsyms.h>
 #include <linux/smp_lock.h>
