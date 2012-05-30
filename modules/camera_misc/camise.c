@@ -35,6 +35,18 @@
 
 /* list of image formats supported by camise sensor */
 const static struct v4l2_fmtdesc camise_formats[] = {
+	{
+		.description	= "YUYV Pattern",
+		.pixelformat	=  V4L2_PIX_FMT_YUYV,
+	},
+	{
+		.description	= "UYVY, packed",
+		.pixelformat	= V4L2_PIX_FMT_UYVY,
+	},
+	{
+		.description	= "Walking 1's pattern",
+		.pixelformat	= V4L2_PIX_FMT_W1S_PATT,
+	}
 /*
 	{
 		.description	= "Bayer10 (GrR/BGb)",
@@ -45,23 +57,6 @@ const static struct v4l2_fmtdesc camise_formats[] = {
 		.pixelformat	= V4L2_PIX_FMT_PATT,
 	},
  */
-	{
-		.description	= "Walking 1's pattern",
-		.pixelformat	= V4L2_PIX_FMT_W1S_PATT,
-	},
-
-	{
-		.description	= "YUYV Pattern",
-		.pixelformat	=  V4L2_PIX_FMT_YUYV,
-	},
-
-/*
-	{
-		.description = "UYVY, packed",
-		.pixelformat = V4L2_PIX_FMT_UYVY,
-	}
-*/
-
 };
 
 #define NUM_CAPTURE_FORMATS ARRAY_SIZE(camise_formats)
@@ -384,8 +379,7 @@ static int ioctl_g_parm(struct v4l2_int_device *s,
  * not possible, reverts to the old parameters and returns the
  * appropriate error code.
  */
-static int ioctl_s_parm(struct v4l2_int_device *s,
-			     struct v4l2_streamparm *a)
+static int ioctl_s_parm(struct v4l2_int_device *s, struct v4l2_streamparm *a)
 {
 	return 0;
 }
@@ -399,11 +393,9 @@ static int ioctl_s_parm(struct v4l2_int_device *s,
  */
 static int ioctl_g_priv(struct v4l2_int_device *s, void *p)
 {
-
 	struct camise_sensor *sensor = s->priv;
 
 	return sensor->pdata->priv_data_set(p);
-
 }
 
 /**
@@ -417,8 +409,7 @@ static int ioctl_g_priv(struct v4l2_int_device *s, void *p)
  * The value is returned in 'val'.
  * Returns zero if successful, or non-zero otherwise.
  */
-static int camise_read_reg(struct i2c_client *client, u16 data_length, u16 reg,
-								u32 *val)
+static int camise_read_reg(struct i2c_client *client, u16 data_length, u16 reg, u32 *val)
 {
 	int err = 0;
 	struct i2c_msg msg[1];

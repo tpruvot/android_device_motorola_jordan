@@ -14,14 +14,22 @@
  *
  */
 
+#define GPIO_SENSOR_NAME "camera_misc"
+#define DEBUG 2
+
+#define TAG "camera"
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/fs.h>
+#include <linux/proc_fs.h>
 #include <linux/miscdevice.h>
 #include <linux/platform_device.h>
 #include <linux/delay.h>
 #include <linux/regulator/consumer.h>
 #include <linux/gpio.h>
+#include <linux/completion.h>
+#include <linux/sched.h>
 
 #include "camera_misc.h"
 #include <../drivers/media/video/omap34xxcam.h>
@@ -31,35 +39,36 @@
 #include <linux/gpio_mapping.h>
 #include <linux/of.h>
 
-#define GPIO_SENSOR_NAME "camera_misc"
-
-#define DEBUG 2
 
 #define err_print(fmt, args...) \
-	printk(KERN_ERR "fun %s "fmt, __func__, ##args)
+	printk(KERN_ERR "fun %s:"fmt, __func__, ##args)
 
-#if DEBUG > 0
-
-#define dbg_print(fmt, args...) \
-	printk(KERN_INFO "fun %s "fmt, __func__, ##args)
-
-#if DEBUG > 1
-#define ddbg_print(fmt, args...) \
-	printk(KERN_INFO "fun %s "fmt, __func__, ##args)
+#if DEBUG == 0
+# define dbg_print(fmt, args...)  ;
+# define ddbg_print(fmt, args...) ;
+#elif DEBUG == 1
+# define dbg_print(fmt, args...) printk(KERN_INFO "fun %s:"fmt, __func__, ##args)
+# define ddbg_print(fmt, args...) ;
 #else
-#define ddbg_print(fmt, args...) ;
+# define dbg_print(fmt, args...) printk(KERN_INFO "fun %s:"fmt, __func__, ##args)
+# define ddbg_print(fmt, args...) printk(KERN_INFO "fun %s:"fmt, __func__, ##args)
 #endif
 
-#else
-
-#define dbg_print(fmt, args...)  ;
-#define ddbg_print(fmt, args...) ;
-
-#endif
-
-#include "camise.h"
+#include "../symsearch/symsearch.h"
+#include <plat/dma.h>
+#include <plat/vrfb.h>
+#include <plat/display.h>
+#include <../drivers/media/video/isp/ispccdc.h>
+#include <../drivers/media/video/omap-vout/omapvout.h>
+#include <../drivers/media/video/omap-vout/omapvout-dss.h>
+#include "omapvout-mem.h"
+#include "omapvout-vbq.h"
+#include "omapvout-dss.h"
 #include "hook.h"
+#include "camise.h"
 static bool hooked = false;
+
+static struct proc_dir_entry *proc_root = NULL;
 
 static void _camera_lines_lowpower_mode(void);
 static void _camera_lines_func_mode(void);
@@ -197,10 +206,10 @@ static int camera_dev_ioctl(struct inode *inode, struct file *file,
 		if (!rc)
 			bHavePowerDownGpio = 1;
 	}
-	ddbg_print("camera ioctl cmd = %u, arg = %lu\n", cmd, arg);
+	ddbg_print("ioctl cmd %u(arg=%lu)\n", cmd, arg);
 
 	switch (cmd) {
-	case CAMERA_RESET_WRITE:
+	case CAMERA_RESET_WRITE: //100
 		if (bHaveResetGpio) {
 			gpio_direction_output(gpio_reset, 0);
 			gpio_set_value(gpio_reset, (arg ? 1 : 0));
@@ -215,7 +224,7 @@ static int camera_dev_ioctl(struct inode *inode, struct file *file,
 		}
 		break;
 
-	case CAMERA_POWERDOWN_WRITE:
+	case CAMERA_POWERDOWN_WRITE: //101
 		if (bHavePowerDownGpio) {
 			gpio_direction_output(gpio_powerdown, 0);
 			if (0 == arg)
@@ -232,17 +241,18 @@ static int camera_dev_ioctl(struct inode *inode, struct file *file,
 		}
 		break;
 
-	case CAMERA_CLOCK_DISABLE:
+	case CAMERA_CLOCK_DISABLE: //102
 		cam_misc_disableClk();
 		dbg_print("CAMERA_MISC turned off MCLK done");
 		break;
 
-	case CAMERA_CLOCK_ENABLE:
+	case CAMERA_CLOCK_ENABLE: //103
 		cam_misc_enableClk(arg);
 		dbg_print("CAMERA_MISC set MCLK to %d\n", (int) arg);
 		break;
-	case CAMERA_AVDD_POWER_ENABLE:
-	case CAMERA_AVDD_POWER_DISABLE:
+	case CAMERA_AVDD_POWER_ENABLE:  //104
+		arg = 1;
+	case CAMERA_AVDD_POWER_DISABLE: //105
 		if (arg == 1) {
 			/* turn on digital power */
 			if (regulator != NULL) {
@@ -281,6 +291,73 @@ static int camera_dev_ioctl(struct inode *inode, struct file *file,
 
 	return 0;
 }
+
+#define CONTROL_PADCONF_CAM_FLD   0x48002114
+#define CONTROL_PADCONF_CAM_XCLKA 0x48002110
+
+static void _camera_lines_lowpower_mode(void)
+{
+	omap_writew(0x0007, 0x4800210C);   /* HSYNC */
+	omap_writew(0x0007, 0x4800210E);   /* VSYNC */
+	omap_writew(0x001F, 0x48002110);   /* MCLK */
+	omap_writew(0x0007, 0x48002112);   /* PCLK */
+	omap_writew(0x3A04, 0x48002114);   /* FLD */
+	omap_writew(0x0007, 0x4800211A);   /* CAM_D2 */
+	omap_writew(0x0007, 0x4800211C);   /* CAM_D3 */
+	omap_writew(0x0007, 0x4800211E);   /* CAM_D4 */
+	omap_writew(0x0007, 0x48002120);   /* CAM_D5 */
+	omap_writew(0x0007, 0x48002122);   /* CAM_D6 */
+	omap_writew(0x0007, 0x48002124);   /* CAM_D7 */
+	omap_writew(0x001F, 0x48002126);   /* CAM_D8 */
+	omap_writew(0x001F, 0x48002128);   /* CAM_D9 */
+	omap_writew(0x001F, 0x4800212A);   /* CAM_D10 */
+	omap_writew(0x001F, 0x4800212C);   /* CAM_D11 */
+}
+
+static void _camera_lines_func_mode(void)
+{
+	omap_writew(0x0118, 0x4800210C);  /* HSYNC */
+	omap_writew(0x0118, 0x4800210E);  /* VSYNC */
+	omap_writew(0x0000, 0x48002110);  /* MCLK */
+	omap_writew(0x0118, 0x48002112);  /* PCLK */
+	omap_writew(0x0004, 0x48002114);  /* FLD */
+	omap_writew(0x0100, 0x4800211A);  /* CAM_D2 */
+	omap_writew(0x0100, 0x4800211C);  /* CAM_D3 */
+	omap_writew(0x0100, 0x4800211E);  /* CAM_D4 */
+	omap_writew(0x0100, 0x48002120);  /* CAM_D5 */
+	omap_writew(0x0100, 0x48002122);  /* CAM_D6 */
+	omap_writew(0x0100, 0x48002124);  /* CAM_D7 */
+	omap_writew(0x0100, 0x48002126);  /* CAM_D8 */
+	omap_writew(0x0100, 0x48002128);  /* CAM_D9 */
+	omap_writew(0x0100, 0x4800212A);  /* CAM_D10 */
+	omap_writew(0x0100, 0x4800212C);  /* CAM_D11 */
+}
+
+
+// dump isp regs cache : cat /proc/camera/isp
+static int proc_isp_read(char *page, char **start, off_t offset, int count, int *eof, void *data) {
+	int wr=0;
+/*	int r;
+	unsigned int state=0;
+
+	for (r=0; r<MAX_REGS; r++) if (store->r[r].reg) {
+
+		state = (0xff & (unsigned int) store->r[r].last_value);
+		wr += scnprintf(page + wr, count - wr, REG_FMT ":%s:%04x:%x\n", (unsigned int) r, capcap_regname(r), store->r[r].mask_wr, state);
+	}
+*/
+	if (wr <= offset + count) *eof=1;
+
+	*start = page + offset;
+	wr -= offset;
+	if (wr > count) wr = count;
+	if (wr < 0) wr = 0;
+
+	return wr;
+}
+
+
+/* PROBE / REMOVE */
 
 static int __init camera_misc_probe(struct platform_device *device)
 {
@@ -330,6 +407,7 @@ static int camera_misc_remove(struct platform_device *device)
 	return 0;
 }
 
+/*
 static int try_pix_parm(struct omap34xxcam_videodev *vdev,
                         struct v4l2_pix_format *best_pix_in,
                         struct v4l2_pix_format *wanted_pix_out,
@@ -367,9 +445,8 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
 		if (rval)
 			break;
 		ddbg_print("trying fmt %8.8x (%d.)\n", fmtd.pixelformat, fmtd_index);
-		/*
-		 * Get supported resolutions.
-		 */
+
+		// Get supported resolutions.
 		for (size_index = 0; size_index < 64; size_index++) {
 			struct v4l2_frmsizeenum frms;
 			struct v4l2_pix_format pix_tmp_in, pix_tmp_out;
@@ -425,10 +502,8 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
 		(abs((pix1)->width - (pix2)->width) \
 		+ abs((pix1)->height - (pix2)->height))
 
-			/*
-			 * Don't use modes that are farther from wanted size
-			 * that what we already got.
-			 */
+			// Don't use modes that are farther from wanted size
+			// that what we already got.
 			if (SIZE_DIFF(&pix_tmp_out, wanted_pix_out)
 			    > SIZE_DIFF(&best_pix_out, wanted_pix_out)) {
 				ddbg_print("size diff bigger: "
@@ -439,13 +514,11 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
 				continue;
 			}
 
-			/*
-			 * There's an input mode that can provide output
-			 * closer to wanted.
-			 */
+			// There's an input mode that can provide output
+			// closer to wanted.
 			if (SIZE_DIFF(&pix_tmp_out, wanted_pix_out)
 			    < SIZE_DIFF(&best_pix_out, wanted_pix_out)) {
-				/* Force renegotation of fps etc. */
+				// Force renegotation of fps etc.
 				best_ival->denominator = 0;
 				ddbg_print("renegotiate: "
 					"w %d\th %d\tw %d\th %d\n",
@@ -461,7 +534,7 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
 				frmi.pixel_format = frms.pixel_format;
 				frmi.width = frms.discrete.width;
 				frmi.height = frms.discrete.height;
-				/* FIXME: try to fix standard... */
+				// FIXME: try to fix standard..
 				frmi.reserved[0] = 0xdeafbeef;
 
 				rval = vidioc_int_enum_frameintervals(
@@ -475,15 +548,13 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
 				if (best_ival->denominator == 0)
 					goto do_it_now;
 
-				/*
-				 * We aim to use maximum resolution
-				 * from the sensor, provided that the
-				 * fps is at least as close as on the
-				 * current mode.
-				 */
+				// We aim to use maximum resolution
+				// from the sensor, provided that the
+				// fps is at least as close as on the
+				// current mode.
 #define FPS_ABS_DIFF(fps, ival) abs(fps - (ival).denominator / (ival).numerator)
 
-				/* Select mode with closest fps. */
+				// Select mode with closest fps.
 				if (FPS_ABS_DIFF(fps, frmi.discrete)
 				    < FPS_ABS_DIFF(fps, *best_ival)) {
 					ddbg_print("closer fps: "
@@ -495,10 +566,8 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
 					goto do_it_now;
 				}
 
-				/*
-				 * Select bigger resolution if it's available
-				 * at same fps.
-				 */
+				// Select bigger resolution if it's available
+				// at same fps.
 				if (frmi.width + frmi.height
 				    > best_pix_in->width + best_pix_in->height
 				    && FPS_ABS_DIFF(fps, frmi.discrete)
@@ -550,18 +619,155 @@ do_it_now:
 	//return ret;
 }
 
+void ispccdc_config_sync_if(struct ispccdc_syncif syncif)
+{
+	if (syncif.datsz == DAT8 && syncif.ipmod == YUV16 && syncif.vdpol == 1) {
+		syncif.vdpol = 0;
+	}
+	HOOK_INVOKE(ispccdc_config_sync_if, syncif);
+	return;
+}
+*/
+
+SYMSEARCH_DECLARE_FUNCTION_STATIC(
+	void, ss_omapvout_chk_overrides, struct omapvout_device *vout);
+
+extern int cam_dss_acquire_vrfb(struct omapvout_device *vout);
+
+int omapvout_open(struct file *file)
+{
+	struct omapvout_device *vout;
+	u16 w, h;
+	int rc;
+
+	vout = video_drvdata(file);
+
+	if (vout == NULL) {
+		printk(KERN_ERR "Invalid device\n");
+		return -ENODEV;
+	}
+
+	mutex_lock(&vout->mtx);
+
+	/* We only support single open */
+	if (vout->opened) {
+		ddbg_print(": Device already opened\n");
+		cam_dss_release(vout);
+		rc = -EBUSY;
+		goto failed;
+	}
+
+	//cam_dss_remove(vout);
+	//cam_dss_acquire_vrfb(vout);
+	//cam_dss_init(vout,);
+	rc = cam_dss_open(vout, &w, &h);
+	if (rc != 0)
+		goto failed;
+
+	dbg_print("Overlay Display w/h %dx%d\n", w, h);
+
+	if (w == 0 || h == 0) {
+		printk(KERN_ERR "Invalid display resolution\n");
+		rc = -EINVAL;
+		goto failed;
+	}
+
+	rc = cam_vbq_init(vout);
+	if (rc != 0)
+		goto failed;
+
+	vout->disp_width = w;
+	vout->disp_height = h;
+	vout->opened = 1;
+
+	memset(&vout->pix, 0, sizeof(vout->pix));
+	vout->pix.width = w;
+	vout->pix.height = h;
+	vout->pix.field = V4L2_FIELD_NONE;
+	vout->pix.pixelformat = V4L2_PIX_FMT_YUYV; /* Arbitrary */
+	vout->pix.colorspace = V4L2_COLORSPACE_SRGB; /* Arbitrary */
+	vout->pix.bytesperline = w * 2;
+	vout->pix.sizeimage = w * h * 2;
+
+	memset(&vout->win, 0, sizeof(vout->win));
+	vout->win.w.width = w;
+	vout->win.w.height = h;
+	vout->win.field = V4L2_FIELD_NONE;
+
+	memset(&vout->crop, 0, sizeof(vout->crop));
+	vout->crop.width = w;
+	vout->crop.height = h;
+
+	memset(&vout->fbuf, 0, sizeof(vout->fbuf));
+
+	vout->rotation = 0;
+	vout->bg_color = 0;
+
+	vout->mmap_cnt = 0;
+
+	SYMSEARCH_BIND_FUNCTION_TO(camera, omapvout_chk_overrides, ss_omapvout_chk_overrides);
+	ss_omapvout_chk_overrides(vout);
+
+	mutex_unlock(&vout->mtx);
+
+	file->private_data = vout;
+
+	ddbg_print("done");
+	return 0;
+
+failed:
+	printk(KERN_ERR "fail !\n");
+	mutex_unlock(&vout->mtx);
+	return rc;
+}
+
 struct hook_info g_hi[] = {
-        HOOK_INIT(try_pix_parm),
-        HOOK_INIT_END
+//	HOOK_INIT(try_pix_parm),
+//	HOOK_INIT(ispccdc_config_sync_if),
+	HOOK_INIT(omapvout_open),
+	HOOK_INIT_END
 };
 
-extern int camise_add_i2c_device(void);
+/* UNREGISTER/FREE HP/3A (Red Lens Camera)
+SYMSEARCH_DECLARE_FUNCTION_STATIC(void, ss_deinitialize_hp3a_framework, void);
+
+static int cam_hp3a_remove(struct platform_device *device)
+{
+	SYMSEARCH_BIND_FUNCTION_TO(camera, deinitialize_hp3a_framework, ss_deinitialize_hp3a_framework);
+	// Deinitialize 3A task, this is a blocking call.
+	ss_deinitialize_hp3a_framework();
+	return 0;
+}
+static struct platform_driver cam_hp3a_driver = {
+	.remove = cam_hp3a_remove,
+	.driver = {
+			.name = "hp3a",
+	},
+};
+*/
+
+/* in board_defs.c */
+extern int  camise_add_i2c_device(void);
+extern void camise_del_i2c_device(void);
+extern void hplens_i2c_release(void);
 
 static int __init camera_misc_init(void)
 {
 	int ret=0;
+	struct proc_dir_entry *proc_entry;
+
+	dbg_print("unregister red lens\n");
+	hplens_i2c_release();
+
+	//dbg_print("unregister hp3a_driver\n");
+	//platform_driver_unregister(&cam_hp3a_driver);
+
 	camise_add_i2c_device();
 	ret=platform_driver_register(&cam_misc_driver);
+
+	proc_root = proc_mkdir(TAG, NULL);
+	proc_entry = create_proc_read_entry("isp", 0444, proc_root, proc_isp_read, NULL);
+	//proc_entry->write_proc = ;
 
 	hook_init();
 	hooked = true;
@@ -571,56 +777,17 @@ static int __init camera_misc_init(void)
 
 static void __exit camera_misc_exit(void)
 {
+	remove_proc_entry("isp", proc_root);
+	remove_proc_entry(TAG, NULL);
 	if (hooked) hook_exit();
-
 	platform_driver_unregister(&cam_misc_driver);
-}
-
-#define CONTROL_PADCONF_CAM_FLD   0x48002114
-#define CONTROL_PADCONF_CAM_XCLKA 0x48002110
-
-void _camera_lines_lowpower_mode(void)
-{
-	omap_writew(0x0007, 0x4800210C);   /* HSYNC */
-	omap_writew(0x0007, 0x4800210E);   /* VSYNC */
-	omap_writew(0x001F, 0x48002110);   /* MCLK */
-	omap_writew(0x0007, 0x48002112);   /* PCLK */
-	omap_writew(0x3A04, 0x48002114);   /* FLD */
-	omap_writew(0x0007, 0x4800211A);   /* CAM_D2 */
-	omap_writew(0x0007, 0x4800211C);   /* CAM_D3 */
-	omap_writew(0x0007, 0x4800211E);   /* CAM_D4 */
-	omap_writew(0x0007, 0x48002120);   /* CAM_D5 */
-	omap_writew(0x0007, 0x48002122);   /* CAM_D6 */
-	omap_writew(0x0007, 0x48002124);   /* CAM_D7 */
-	omap_writew(0x001F, 0x48002126);   /* CAM_D8 */
-	omap_writew(0x001F, 0x48002128);   /* CAM_D9 */
-	omap_writew(0x001F, 0x4800212A);   /* CAM_D10 */
-	omap_writew(0x001F, 0x4800212C);   /* CAM_D11 */
-}
-
-void _camera_lines_func_mode(void)
-{
-	omap_writew(0x0118, 0x4800210C);  /* HSYNC */
-	omap_writew(0x0118, 0x4800210E);  /* VSYNC */
-	omap_writew(0x0000, 0x48002110);  /* MCLK */
-	omap_writew(0x0118, 0x48002112);  /* PCLK */
-	omap_writew(0x0004, 0x48002114);  /* FLD */
-	omap_writew(0x0100, 0x4800211A);  /* CAM_D2 */
-	omap_writew(0x0100, 0x4800211C);  /* CAM_D3 */
-	omap_writew(0x0100, 0x4800211E);  /* CAM_D4 */
-	omap_writew(0x0100, 0x48002120);  /* CAM_D5 */
-	omap_writew(0x0100, 0x48002122);  /* CAM_D6 */
-	omap_writew(0x0100, 0x48002124);  /* CAM_D7 */
-	omap_writew(0x0100, 0x48002126);  /* CAM_D8 */
-	omap_writew(0x0100, 0x48002128);  /* CAM_D9 */
-	omap_writew(0x0100, 0x4800212A);  /* CAM_D10 */
-	omap_writew(0x0100, 0x4800212C);  /* CAM_D11 */
+	camise_del_i2c_device();
 }
 
 module_init(camera_misc_init);
 module_exit(camera_misc_exit);
 
-MODULE_VERSION("1.2");
+MODULE_VERSION("1.3");
 MODULE_DESCRIPTION("Motorola Camera Driver Backport");
 MODULE_AUTHOR("Tanguy Pruvot, From Motorola Open Sources");
 MODULE_LICENSE("GPL");

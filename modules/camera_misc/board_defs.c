@@ -11,6 +11,7 @@
 #include <linux/string.h>
 #include <linux/gpio_mapping.h>
 #include <plat/resource.h>
+#include <media/v4l2-device.h> //v4l2_device_unregister_subdev
 
 #ifdef CONFIG_ARM_OF
 # include <mach/dt_path.h>
@@ -99,12 +100,15 @@ static struct omap34xxcam_sensor_config camise_cam_hwc = {
 	.sensor_isp = 1,
 	.xclk = OMAP34XXCAM_XCLK_A,
 	.capture_mem = PAGE_ALIGN(2048 * 1536 * 2) * 4,
+//	.capture_mem = PAGE_ALIGN(2592 * 1936 * 2) * 2,
+//	.capture_mem = PAGE_ALIGN(2592 * 1944 * 2) * 4,
 };
 
 static struct isp_interface_config camise_if_config = {
 	.ccdc_par_ser = ISP_PARLL,
 	.dataline_shift = 0x2, /* 8bit sensor using D11 to D4. */
 	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
+//	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSFALL,
 	.strobe = 0x0,
 	.prestrobe = 0x0,
 	.shutter = 0x0,
@@ -277,6 +281,7 @@ static int camise_sensor_set_prv_data(void *priv)
 
 static void camise_if_configure(void)
 {
+	printk(KERN_DEBUG "%s\n", __func__);
 	isp_configure_interface(&camise_if_config);
 }
 
@@ -411,21 +416,18 @@ struct camise_platform_data mapphone_camise_platform_data = {
 	.get_size       = camise_get_capture_size,
 };
 
-struct i2c_board_info __initdata mapphone_i2c_bus_camise_board_info = {
+struct i2c_board_info mapphone_i2c_bus_camise_board_info = {
 	I2C_BOARD_INFO("camise", CAMISE_I2C_ADDR),
 	.platform_data = &mapphone_camise_platform_data,
 };
 
+//**********************************************************************
+
+static struct i2c_client *camise_client = NULL;
+
 int camise_add_i2c_device(void)
 {
-	struct i2c_board_info info;
 	struct i2c_adapter *adapter;
-	struct i2c_client *client;
-
-	memset(&info, 0, sizeof(struct i2c_board_info));
-	info.addr = CAMISE_I2C_ADDR;
-	strlcpy(info.type, "camise", I2C_NAME_SIZE);
-	info.platform_data = &mapphone_camise_platform_data;
 
 	adapter = i2c_get_adapter(3);
 	if (!adapter) {
@@ -433,9 +435,9 @@ int camise_add_i2c_device(void)
 		return -ENODEV;
 	}
 
-	client = i2c_new_device(adapter, &info);
+	camise_client = i2c_new_device(adapter, &mapphone_i2c_bus_camise_board_info);
 	i2c_put_adapter(adapter);
-	if (!client) {
+	if (!camise_client) {
 		printk(KERN_DEBUG "can't add i2c device\n");
 		return -ENODEV;
 	}
@@ -443,4 +445,63 @@ int camise_add_i2c_device(void)
 	printk(KERN_INFO "camise_add_i2c_device: done\n");
 
 	return 0;
+}
+
+void camise_del_i2c_device(void)
+{
+	if (camise_client) {
+		i2c_unregister_device(camise_client);
+		camise_client = NULL;
+	}
+}
+
+//**********************************************************************
+static struct i2c_client* i2c_hplens = NULL;
+static int __i2c_at_addr(struct device *dev, void *addrp)
+{
+	struct i2c_client   *client = i2c_verify_client(dev);
+	int    addr = *(int *)addrp;
+	if (client && client->addr == addr) {
+		i2c_hplens = client;
+		return -EBUSY;
+	}
+	return 0;
+}
+static struct i2c_client* i2c_client_at(struct i2c_adapter *adapter, int addr)
+{
+	device_for_each_child(&adapter->dev, &addr, __i2c_at_addr);
+	return i2c_hplens;
+}
+
+#define HPLENS_DRV_SYSFS "hplens-omap"
+void hplens_i2c_release(void)
+{
+	struct i2c_adapter *adapter;
+	struct i2c_client  *client;
+	//struct i2c_driver  *idriver;
+	void * subdev = NULL;
+
+	adapter = i2c_get_adapter(3);
+	client = i2c_client_at(adapter, 0x04);
+	if (client) {
+		printk(KERN_INFO " found hplens at 3-0004 i2c client\n");
+		//idriver = client->driver;
+
+		//printk(KERN_INFO " i2c_del_driver %s\n", idriver->driver.name);
+		//i2c_del_driver(idriver);
+		//printk(KERN_INFO " device_unregister %s\n", client->dev.type->name);
+		//device_unregister(&client->dev);
+
+		//printk(KERN_INFO " sysfs_remove_group\n",);
+		//sysfs_remove_group(&client->dev.kobj, &asb100_group);
+		subdev = i2c_get_clientdata(client);
+		printk(KERN_INFO " v4l2_device_unregister_subdev %x\n", (u32) subdev);
+		v4l2_device_unregister_subdev(subdev);
+		printk(KERN_INFO " i2c_unregister_device\n");
+		i2c_unregister_device(client);
+		i2c_put_adapter(adapter);
+		printk(KERN_INFO " unregister_chrdev\n");
+		unregister_chrdev(245, HPLENS_DRV_SYSFS);
+		client = NULL;
+	}
 }
