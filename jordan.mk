@@ -109,8 +109,7 @@ PRODUCT_PACKAGES += DroidSSHd dropbear dropbearkey sftp-server scp ssh rsync
 PRODUCT_PACKAGES += RomUpdater
 
 # CM9 apps
-PRODUCT_PACKAGES += FileManager Torch
-PRODUCT_PACKAGES += Androidian Apollo
+PRODUCT_PACKAGES += FileManager Torch Apollo
 
 # Experimental TI OpenLink
 PRODUCT_PACKAGES += libnl_2 iw
