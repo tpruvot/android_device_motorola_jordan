@@ -28,7 +28,18 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := io.c
 LOCAL_MODULE := io
-LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_TAGS := optional
+
+include $(BUILD_EXECUTABLE)
+
+# devmem2 -- Simple program to read/write from/to any hardware address
+# http://man.cx/devmem2(1)
+
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES := devmem2.c
+LOCAL_MODULE := devmem2
+LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_EXECUTABLE)
 
