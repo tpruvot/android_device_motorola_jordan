@@ -1,9 +1,11 @@
 /*
  * devmem2.c: Simple program to read/write from/to any location in memory.
  *
- * v1.0.0 (available as debian package)
+ * v1.0.0 available as debian package
  *
  *  Copyright (C) 2000, Jan-Derk Bakker (jdb@lartmaker.nl)
+ *
+ *  Warning fixes by Tanguy Pruvot for bionic (tpruvot@github)
  *
  *
  * This software has been developed for the LART computing board
@@ -47,6 +49,9 @@
 #define MAP_SIZE 4096UL
 #define MAP_MASK (MAP_SIZE - 1)
 
+#define INCPTR(p,n) p = (void*) ( ((unsigned long) p) + ((unsigned long) n) )
+#define ADDPTR(p,n)     (void*) ( ((unsigned long) p) + ((unsigned long) n) )
+
 int main(int argc, char **argv) {
 	int fd;
 	void *map_base, *virt_addr;
@@ -78,7 +83,9 @@ int main(int argc, char **argv) {
 	printf("Memory mapped at address %p.\n", map_base);
 	fflush(stdout);
 
-	virt_addr = map_base + (target & MAP_MASK);
+	//virt_addr = map_base + (target & MAP_MASK);
+	virt_addr = ADDPTR(map_base, (target & MAP_MASK));
+
 	switch(access_type) {
 		case 'b':
 			read_result = *((unsigned char *) virt_addr);
@@ -93,7 +100,7 @@ int main(int argc, char **argv) {
 			fprintf(stderr, "Illegal data type '%c'.\n", access_type);
 			exit(2);
 	}
-	printf("Value at address 0x%X (%p): 0x%X\n", target, virt_addr, read_result);
+	printf("Value at address 0x%lX (%p): 0x%lX\n", target, virt_addr, read_result);
 	fflush(stdout);
 
 	if(argc > 3) {
@@ -112,7 +119,7 @@ int main(int argc, char **argv) {
 				read_result = *((unsigned long *) virt_addr);
 				break;
 		}
-		printf("Written 0x%X; readback 0x%X\n", writeval, read_result);
+		printf("Written 0x%lX; readback 0x%lX\n", writeval, read_result);
 		fflush(stdout);
 	}
 
