@@ -114,6 +114,9 @@ PRODUCT_PACKAGES += FileManager Torch Apollo
 # Experimental TI OpenLink
 PRODUCT_PACKAGES += libnl_2 iw
 
+# other cmdline tools
+PRODUCT_PACKAGES += io devmem2
+
 # copy all vendor (motorola) kernel modules to system/lib/modules
 PRODUCT_COPY_FILES += $(shell test -d vendor/motorola/jordan/lib/modules &&  \
 	find vendor/motorola/jordan/lib/modules -name '*.ko' \
