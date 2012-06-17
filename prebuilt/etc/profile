@@ -1,6 +1,8 @@
 [ -f /system/etc/banner ] && cat /system/etc/banner
 
-export TERM=linux
+export TERM=xterm
+
+alias ifconfig='busybox ifconfig'
 
 alias la='toolbox ls -a -l'
 alias ll='busybox ls -al --color=auto'
