@@ -115,6 +115,7 @@ PRODUCT_PACKAGES += FileManager Torch Apollo
 PRODUCT_PACKAGES += libnl_2 iw
 
 # other cmdline tools
+PRODUCT_PACKAGES += tcpdump ping6
 PRODUCT_PACKAGES += io devmem2
 
 # copy all vendor (motorola) kernel modules to system/lib/modules
