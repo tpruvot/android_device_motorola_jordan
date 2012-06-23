@@ -1,9 +1,6 @@
 /* vim:et:sts=4:sw=4
  *
- * Copyright (C) 2012, rondoval (ms2), Epsylon3 (defy)
- * Copyright (C) 2012, Won-Kyu Park
- * Copyright (C) 2012, Raviprasad V Mummidi
- * Copyright (C) 2011, Ivan Zupan
+ * Copyright (C) 2012, The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,29 +15,28 @@
  * limitations under the License.
  */
 
-/**
- * ChangeLog
- *
- * 2012/01/19 - based on Raviprasad V Mummidi's code and some code by Ivan Zupan
- * 2012/01/21 - cleaned up by wkpark.
- * 2012/02/09 - first working version for P990/SU660 with software rendering
- *            - need to revert "MemoryHeapBase: Save and binderize the offset"
- *              commit f24c4cd0f204068a17f61f1c195ccf140c6c1d67.
- *            - some wrapper functions are needed (please see the libui.patch)
- * 2012/02/19 - Generic cleanup and overlay support (for Milestone 2)
- */
-
 #define LOG_TAG "CameraHAL"
 //#define LOG_NDEBUG 0
-#define LOG_FULL_PARAMS
+//#define LOG_FULL_PARAMS
 //#define LOG_EACH_FRAME
 
-#include <hardware/camera.h>
-#include <ui/Overlay.h>
-#include <binder/IMemory.h>
 #include <hardware/gralloc.h>
+#include <hardware/camera.h>
+#include <binder/IMemory.h>
+#include <camera/Overlay.h>
 #include <utils/Errors.h>
 #include <vector>
+
+#define USAGE_WIN \
+    (GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_SW_READ_OFTEN)
+#define USAGE_BUF \
+    (GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER)
+
+#ifdef LOG_EACH_FRAME
+# define LOGVF(...) LOGV(__VA_ARGS__)
+#else
+# define LOGVF(...)
+#endif
 
 using namespace std;
 
@@ -166,9 +162,7 @@ static void Yuv422iToRgb565(char* rgb, char* yuv422i, int width, int height, int
 
 static void processPreviewData(char *frame, size_t size, legacy_camera_device *lcdev, Overlay::Format format)
 {
-#ifdef LOG_EACH_FRAME
-    LOGV("%s: frame=%p, size=%d, camera=%p", __FUNCTION__, frame, size, lcdev);
-#endif
+    LOGVF("%s: frame=%p, size=%d, camera=%p", __FUNCTION__, frame, size, lcdev);
     if (lcdev->window == NULL) {
         return;
     }
@@ -197,8 +191,7 @@ static void processPreviewData(char *frame, size_t size, legacy_camera_device *l
     void *vaddr;
 
     do {
-        ret = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle,
-                                   GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER,
+        ret = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, USAGE_BUF,
                                    0, 0, lcdev->previewWidth, lcdev->previewHeight, &vaddr);
         tries--;
         if (ret) {
@@ -408,7 +401,7 @@ static int camera_set_preview_window(struct camera_device * device, struct previ
     LOGD("%s: preview format %s", __FUNCTION__, previewFormat);
     lcdev->previewFormat = Overlay::getFormatFromString(previewFormat);
 
-    if (window->set_usage(window, GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_SW_READ_OFTEN)) {
+    if (window->set_usage(window, USAGE_WIN)) {
         LOGE("%s: could not set usage on gralloc buffer", __FUNCTION__);
         return -1;
     }

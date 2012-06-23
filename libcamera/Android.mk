@@ -8,6 +8,8 @@ LOCAL_MODULE         := camera.jordan
 LOCAL_SRC_FILES      := cameraHal.cpp JordanCameraWrapper.cpp
 LOCAL_PRELINK_MODULE := false
 
+LOCAL_CFLAGS += -O3
+
 LOCAL_C_INCLUDES += $(ANDROID_BUILD_TOP)/frameworks/base/include
 
 LOCAL_SHARED_LIBRARIES += \
