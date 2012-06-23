@@ -167,6 +167,10 @@ on post-fs-data
     mkdir /data/opprof 0770 radio shell
     # create dropbear directory
     mkdir /data/dropbear 0755 root shell
+    # hwui config folder for process names white list
+    mkdir /data/local/hwui.allow
+    chown system nobody /data/local/hwui.allow
+    chmod 0775 /data/local/hwui.allow
     # create the necessary dirs for tpapi with proper permission
     mkdir /data/tpapi
     mkdir /data/tpapi/etc
