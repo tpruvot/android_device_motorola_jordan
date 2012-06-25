@@ -71,9 +71,10 @@ ro.product.use_charge_counter=1
 hwui.print_config=choice
 
 # disable hw renderer by default for stability, except for browser
+# and flash flayer (required to allow flash objects display)
 # Limited to 91 chars ! You can also use "*" and place files named
 # by process names in /data/local/hwui.allow/ (or use HWA Selector app)
-hwui.whitelist=com.android.browser
+hwui.whitelist=com.android.browser:com.adobe.flashplayer
 hwui.blacklist=0
 
 # CpuGovernorService (require ondemand cpu governor)
