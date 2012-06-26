@@ -196,6 +196,7 @@ static void processPreviewData(char *frame, size_t size, legacy_camera_device *l
         tries--;
         if (ret) {
             LOGW("%s: gralloc lock retry", __FUNCTION__);
+            lcdev->gralloc->unlock(lcdev->gralloc, *bufHandle);
             usleep(1000);
         }
     } while (ret && tries > 0);
