@@ -136,6 +136,13 @@ JordanCameraWrapper::JordanCameraWrapper(sp<CameraHardwareInterface>& motoInterf
 {
     if (type == CAM_SOC) {
         mTorchThread = new TorchEnableThread(this);
+
+        /* The camera lib initializes focus-mode with the value 'on', which is not in its
+         * own focus-mode-values list :-(
+         */
+        CameraParameters params = motoInterface->getParameters();
+        params.set(CameraParameters::KEY_FOCUS_MODE, CameraParameters::FOCUS_MODE_AUTO);
+        motoInterface->setParameters(params);
     }
 }
 
@@ -383,10 +390,9 @@ JordanCameraWrapper::setParameters(const CameraParameters& params)
     bool isWide;
 
     /*
-     * getInt returns -1 if the value isn't present and 0 on parse failure,
-     * so if it's larger than 0, we can be sure the value was parsed properly
+     * getInt returns -1 if the value isn't present and 0 on parse failure
      */
-    mVideoMode = pars.getInt("cam-mode") > 0;
+    mVideoMode = pars.getInt("cam-mode") == 1;
     pars.remove("cam-mode");
 
     pars.getPreviewSize(&width, &height);
