@@ -28,6 +28,7 @@ PRODUCT_COPY_FILES += \
 	device/motorola/jordan/prebuilt/etc/init.d/00baseband:system/etc/init.d/00baseband \
 	device/motorola/jordan/prebuilt/etc/init.d/01sysctl:system/etc/init.d/01sysctl \
 	device/motorola/jordan/prebuilt/etc/init.d/03adbd:system/etc/init.d/03adbd \
+	device/motorola/jordan/prebuilt/etc/init.d/04filesystems:system/etc/init.d/04filesystems \
 	device/motorola/jordan/prebuilt/etc/init.d/05mountsd:system/etc/init.d/05mountsd \
 	device/motorola/jordan/prebuilt/etc/init.d/08backlight:system/etc/init.d/08backlight \
 	device/motorola/jordan/prebuilt/etc/init.d/80kineto:system/etc/init.d/80kineto \
