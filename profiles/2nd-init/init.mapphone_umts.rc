@@ -12,6 +12,7 @@ on init
     # note: we use 2nd-init, /system is already mounted
 
     # Load kernel modules
+    insmod /system/lib/modules/klogger.ko
     insmod /system/lib/modules/netmux.ko
     insmod /system/lib/modules/netmux_linkdriver.ko
     insmod /system/lib/modules/modem_pm_driver.ko
