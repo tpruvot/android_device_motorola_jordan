@@ -12,18 +12,20 @@ on init
     # note: we use 2nd-init, /system is already mounted
 
     # Load kernel modules
+    insmod /system/lib/modules/symsearch.ko
     insmod /system/lib/modules/klogger.ko
+
     insmod /system/lib/modules/netmux.ko
     insmod /system/lib/modules/netmux_linkdriver.ko
     insmod /system/lib/modules/modem_pm_driver.ko
 
     insmod /system/lib/modules/iptable_raw.ko
-#    insmod /system/lib/modules/iptable_mangle.ko
+#   insmod /system/lib/modules/iptable_mangle.ko
 
     insmod /system/lib/modules/ip6_tables.ko
     insmod /system/lib/modules/ip6table_filter.ko
     insmod /system/lib/modules/ip6table_raw.ko
-#    insmod /system/lib/modules/ip6table_mangle.ko
+#   insmod /system/lib/modules/ip6table_mangle.ko
     insmod /system/lib/modules/ip6t_REJECT.ko
     insmod /system/lib/modules/ip6t_LOG.ko
 
@@ -35,7 +37,6 @@ on init
 
     insmod /system/lib/modules/tun.ko
 
-    insmod /system/lib/modules/symsearch.ko
     insmod /system/lib/modules/mmcfix.ko
     insmod /system/lib/modules/usbled.ko
     insmod /system/lib/modules/clockfix.ko

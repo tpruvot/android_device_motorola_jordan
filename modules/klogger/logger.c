@@ -1,6 +1,8 @@
 /*
  * klogger: A kernel logging subsystem addon for adb
  *
+ * v2.0: also allow to use a bigger buffer for 'main' log
+ *
  * Copyright (C) 2007-2008 Google, Inc.
  * 2012, Tanguy Pruvot, CyanogenDefy <tpruvot@github>
  *
@@ -21,18 +23,17 @@
 #include <linux/uaccess.h>
 #include <linux/poll.h>
 #include <linux/time.h>
+#include <linux/console.h>
 #include "logger.h"
 
 #include <asm/ioctls.h>
 
 #define TAG "klogger"
-#undef  NORMAL_LOG
-//#define NORMAL_LOG todo : unregister kernel ones
-#define KERNEL_LOG
+#define RESIZE_LOG
 
-#ifdef KERNEL_LOG
-#include <linux/console.h>
-#endif
+#include "hook.h"
+static bool hooked = false;
+
 /*
  * struct logger_log - represents a specific log, such as 'main' or 'radio'
  *
@@ -63,7 +64,6 @@ struct logger_reader {
 	size_t			r_off;	/* current read head offset */
 };
 
-#ifdef KERNEL_LOG
 static void logger_kernel_write(struct console *co, const char *s, unsigned count);
 static struct console loggercons = {
     name:	"logger",
@@ -71,7 +71,6 @@ static struct console loggercons = {
     flags:	CON_ENABLED,
     index:	-1,
 };
-#endif
 
 /* logger_offset - returns index 'n' into the log via (optimized) modulus */
 #define logger_offset(n)	((n) & (log->size - 1))
@@ -331,11 +330,11 @@ static ssize_t do_write_log_from_user(struct logger_log *log,
 }
 
 /*
- * logger_aio_write - our write method, implementing support for write(),
+ * klogger_aio_write - our write method, implementing support for write(),
  * writev(), and aio_write(). Writes are our fast path, and we try to optimize
  * them above all else.
  */
-ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ssize_t klogger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 			 unsigned long nr_segs, loff_t ppos)
 {
 	struct logger_log *log = file_get_log(iocb->ki_filp);
@@ -487,7 +486,7 @@ static unsigned int logger_poll(struct file *file, poll_table *wait)
 	return ret;
 }
 
-static long logger_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long klogger_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct logger_log *log = file_get_log(file);
 	struct logger_reader *reader;
@@ -541,52 +540,29 @@ static long logger_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 static const struct file_operations logger_fops = {
 	.owner = THIS_MODULE,
 	.read = logger_read,
-	.aio_write = logger_aio_write,
+	.aio_write = klogger_aio_write,
 	.poll = logger_poll,
-	.unlocked_ioctl = logger_ioctl,
-	.compat_ioctl = logger_ioctl,
+	.unlocked_ioctl = klogger_ioctl,
+	.compat_ioctl = klogger_ioctl,
 	.open = logger_open,
 	.release = logger_release,
 };
 
-/*
- * Defines a log structure with name 'NAME' and a size of 'SIZE' bytes, which
- * must be a power of two, greater than LOGGER_ENTRY_MAX_LEN, and less than
- * LONG_MAX minus LOGGER_ENTRY_MAX_LEN.
- */
-#define DEFINE_LOGGER_DEVICE(VAR, NAME, SIZE) \
-static unsigned char _buf_ ## VAR[SIZE]; \
-static struct logger_log VAR = { \
-	.buffer = _buf_ ## VAR, \
-	.misc = { \
-		.minor = MISC_DYNAMIC_MINOR, \
-		.name = NAME, \
-		.fops = &logger_fops, \
-		.parent = NULL, \
-	}, \
-	.wq = __WAIT_QUEUE_HEAD_INITIALIZER(VAR .wq), \
-	.readers = LIST_HEAD_INIT(VAR .readers), \
-	.mutex = __MUTEX_INITIALIZER(VAR .mutex), \
-	.w_off = 0, \
-	.head = 0, \
-	.size = SIZE, \
-};
-
-#ifdef NORMAL_LOG
-DEFINE_LOGGER_DEVICE(log_main, LOGGER_LOG_MAIN, 64*1024)
-DEFINE_LOGGER_DEVICE(log_events, LOGGER_LOG_EVENTS, 256*1024)
-DEFINE_LOGGER_DEVICE(log_radio, LOGGER_LOG_RADIO, 64*1024)
-DEFINE_LOGGER_DEVICE(log_system, LOGGER_LOG_SYSTEM, 64*1024)
+#ifdef RESIZE_LOG
+static unsigned char _buf_log_big[512*1024];
+static bool resized = false;
+static unsigned long prev_size = 0;
+static unsigned long prev_offt = 0;
+static unsigned char *prev_addr = NULL;
+static struct logger_log *orig_log;
 #endif
 
-#ifdef KERNEL_LOG
 static struct file_operations kernel_logger_fops = {
 	.owner = THIS_MODULE,
 	.read = logger_read,
-//	.aio_write = logger_kernel_write,
 	.poll = logger_poll,
-	.unlocked_ioctl = logger_ioctl,
-	.compat_ioctl = logger_ioctl,
+	.unlocked_ioctl = klogger_ioctl,
+	.compat_ioctl = klogger_ioctl,
 	.open = logger_open,
 	.release = logger_release,
 };
@@ -598,7 +574,7 @@ static struct logger_log log_kernel = {
 	.misc ={
 		.minor = MISC_DYNAMIC_MINOR,
 		.name = "log_kernel",
-		.fops = & kernel_logger_fops,
+		.fops = &kernel_logger_fops,
 		.parent = NULL,
 	},
 	.wq = __WAIT_QUEUE_HEAD_INITIALIZER(log_kernel.wq),
@@ -606,9 +582,8 @@ static struct logger_log log_kernel = {
 	.mutex = __MUTEX_INITIALIZER(log_kernel.mutex),
 	.w_off = 0,
 	.head = 0,
-	.size = 64*1024,
+	.size = sizeof(_buf_log_kernel),
 };
-
 
 static void logger_kernel_write(struct console *co, const char *s, unsigned count)
 {
@@ -623,8 +598,11 @@ static void logger_kernel_write(struct console *co, const char *s, unsigned coun
 	ssize_t ret = 0;
 	const char tag[7] ="kernel\0";
 	iov=&vec[0];
-	/* since s is a pointer to LOG_BUF and we know LOG_BUF is continuous, s[-3]='<', s[-2] is the log level and s[-1]='>'.If not, we set loglevel as default value 0*/
-	/*switch (s[-2]) {
+	/* since s is a pointer to LOG_BUF and we know LOG_BUF is continuous,
+	 * s[-3]='<', s[-2] is the log level and s[-1]='>'.
+	 * If not, we set loglevel as default value 0
+	 */
+	switch (s[-2]) {
 		case '0': prio=3;break;
 		case '1': prio=3;break;
 		case '2': prio=3;break;
@@ -634,7 +612,7 @@ static void logger_kernel_write(struct console *co, const char *s, unsigned coun
 		case '6': prio=4;break;
 		case '7': prio=3;break;
 		default:  prio=3;
-	}*/
+	}
 	vec[0].iov_base = (unsigned char *) &prio;
 	vec[0].iov_len  = 1;
 	vec[1].iov_base = (void *)tag;
@@ -649,8 +627,6 @@ static void logger_kernel_write(struct console *co, const char *s, unsigned coun
 	header.sec = now.tv_sec;
 	header.nsec= now.tv_nsec;
 	header.len = min_t(size_t, msg_len, LOGGER_ENTRY_MAX_PAYLOAD);
-
-	//mutex_lock(&log->mutex);
 
 	do_write_log(log, &header, sizeof(struct logger_entry));
 
@@ -668,51 +644,64 @@ static void logger_kernel_write(struct console *co, const char *s, unsigned coun
 		iov++;
 	}
 
-	//mutex_unlock(&log->mutex);
-
 	/* wake up any blocked readers */
 	wake_up_interruptible(&log->wq);
 
 	return ;
-
 }
-
-
-
-
-#endif
 
 static struct logger_log *get_log_from_minor(int minor)
 {
-#ifdef NORMAL_LOG
-	if (log_main.misc.minor == minor)
-		return &log_main;
-	if (log_events.misc.minor == minor)
-		return &log_events;
-	if (log_radio.misc.minor == minor)
-		return &log_radio;
-	if (log_system.misc.minor == minor)
-		return &log_system;
-#endif
-#ifdef KERNEL_LOG
 	if (log_kernel.misc.minor == minor)
 		return &log_kernel;
-#endif
 	return NULL;
 }
 
+ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
+			 unsigned long nr_segs, loff_t ppos)
+{
+	struct logger_log *log = file_get_log(iocb->ki_filp);
+	struct miscdevice* dev = &log->misc;
+
+	ssize_t ret = HOOK_INVOKE(logger_aio_write, iocb, iov, nr_segs, ppos);
+
+	mutex_lock(&log->mutex);
+	if (log->size != sizeof(_buf_log_big) && strcmp(dev->name, "log_main") == 0) {
+		prev_size = log->size;
+		prev_addr = log->buffer;
+		prev_offt = log->w_off;
+		orig_log = log;
+
+		memcpy(_buf_log_big, log->buffer, log->w_off);
+
+		log->buffer = _buf_log_big;
+		log->size = sizeof(_buf_log_big);
+		resized = true;
+
+		pr_info(TAG ": buffer size of %s increased from %luK to %luK\n",
+		        dev->name, prev_size >> 10,
+		        (unsigned long) sizeof(_buf_log_big) >> 10);
+	}
+	mutex_unlock(&log->mutex);
+
+	return ret;
+}
+
+struct hook_info g_hi[] = {
+	HOOK_INIT(logger_aio_write),
+	HOOK_INIT_END
+};
+
 static int __init init_log(struct logger_log *log)
 {
-	int ret;
-
-	ret = misc_register(&log->misc);
+	int ret = misc_register(&log->misc);
 	if (unlikely(ret)) {
-		printk(KERN_ERR "logger: failed to register misc "
-		       "device for log '%s'!\n", log->misc.name);
+		pr_err(TAG ": failed to register misc "
+		      "device for log '%s'!\n", log->misc.name);
 		return ret;
 	}
 
-	printk(KERN_INFO "logger: created %luK log '%s'\n",
+	pr_info(TAG ": created %luK buffer for %s\n",
 	       (unsigned long) log->size >> 10, log->misc.name);
 
 	return 0;
@@ -721,46 +710,33 @@ static int __init init_log(struct logger_log *log)
 static int __init klogger_init(void)
 {
 	int ret;
-
-#ifdef NORMAL_LOG
-	ret = init_log(&log_main);
-	if (unlikely(ret))
-		goto out;
-
-	ret = init_log(&log_events);
-	if (unlikely(ret))
-		goto out;
-
-	ret = init_log(&log_radio);
-	if (unlikely(ret))
-		goto out;
-
-	ret = init_log(&log_system);
-	if (unlikely(ret))
-		goto out;
+#ifdef RESIZE_LOG
+	hook_init();
+	hooked = true;
 #endif
-#ifdef KERNEL_LOG
 	ret = init_log(&log_kernel);
 	if (unlikely(ret))
 		goto out;
 	register_console(&loggercons);
-#endif
-
 out:
 	return ret;
 }
 
-static void __exit klogger_exit(void) {
-#ifdef NORMAL_LOG
-	misc_deregister(&log_main.misc);
-	misc_deregister(&log_events.misc);
-	misc_deregister(&log_radio.misc);
-	misc_deregister(&log_system.misc);
+static void __exit klogger_exit(void)
+{
+#ifdef RESIZE_LOG
+	if (hooked) hook_exit();
+
+	mutex_lock(&orig_log->mutex);
+	orig_log->size = prev_size;
+	orig_log->buffer = prev_addr;
+	orig_log->w_off = prev_offt;
+	mutex_unlock(&orig_log->mutex);
+	orig_log = NULL;
+	pr_info(TAG ": buffer size restored to %luK\n", prev_size >> 10);
 #endif
-#ifdef KERNEL_LOG
 	unregister_console(&loggercons);
 	misc_deregister(&log_kernel.misc);
-#endif
 }
 
 module_init(klogger_init);
@@ -769,5 +745,5 @@ module_exit(klogger_exit);
 MODULE_ALIAS(TAG);
 MODULE_DESCRIPTION("Allow to get kernel logs with adb logcat");
 MODULE_AUTHOR("Tanguy Pruvot, CyanogenDefy");
-MODULE_VERSION("1.0");
+MODULE_VERSION("2.0");
 MODULE_LICENSE("GPL");
