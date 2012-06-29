@@ -44,6 +44,8 @@ extern struct hook_info g_hi[];
 
 #define HOOK_INIT(f) { .targetName = #f, .newfunc = (unsigned int)f }
 
+#define HOOK_RENAME(f,n) { .targetName = #f, .newfunc = (unsigned int)n }
+
 #define HOOK_INIT_END { .newfunc = 0 }
 
 #endif

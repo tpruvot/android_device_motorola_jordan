@@ -119,6 +119,7 @@ module_init(mmcfix_init);
 module_exit(mmcfix_exit);
 
 MODULE_ALIAS("MMC-fix");
+MODULE_VERSION("1.1");
 MODULE_AUTHOR("CyanogenDefy - Built by Tanguy Pruvot - Created by Nadlabak");
 MODULE_DESCRIPTION("fix omap hsmmc driver timeouts via kernel function hook");
 MODULE_LICENSE("GPL");
