@@ -40,8 +40,10 @@
 #define ERR(format, ...)   (printk(KERN_ERR MODULE_NAME ": " format, ## __VA_ARGS__))
 
 
-SYMSEARCH_DECLARE_FUNCTION_STATIC(unsigned long, pkallsyms_lookup_name, const char *);
-SYMSEARCH_DECLARE_FUNCTION_STATIC(const char *, pkallsyms_lookup, unsigned long, unsigned long *, unsigned long *, char **, char *);
+SYMSEARCH_DECLARE_FUNCTION_STATIC(unsigned long,
+	pkallsyms_lookup_name, const char *);
+SYMSEARCH_DECLARE_FUNCTION_STATIC(const char *,
+	pkallsyms_lookup, unsigned long, unsigned long *, unsigned long *, char **, char *);
 
 /* Only ARM is supported and the target will crash if there involves
    PC related addressing in the first instruction. Because that
@@ -55,8 +57,8 @@ int hook(struct hook_info *hi) {
 			hi->target = (unsigned int*)pkallsyms_lookup_name(hi->targetName);
 		}
 		if ( !hi->target ) {
-			ERR("Target address is not defined and targetName(%s) cannot be found.\n", hi->targetName ?
-					hi->targetName : "");
+			ERR("Target address is not defined and targetName(%s) cannot be found.\n",
+			     hi->targetName ? hi->targetName : "");
 			return -1;
 		}
 		ptargetName = hi->targetName;
@@ -87,7 +89,7 @@ int unhook(struct hook_info *hi) {
 	if ( hi->target ) {
 		// Restore the first 2 instructions to target.
 		hi->target[0] = hi->asm0;
-		INFO("unhooked %p\n", hi->target);
+		INFO("unhooked %s\n", hi->targetName);
 	}
 	return 0;
 }

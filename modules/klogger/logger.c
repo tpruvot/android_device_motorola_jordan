@@ -30,6 +30,8 @@
 
 #define TAG "klogger"
 #define RESIZE_LOG
+#define KLOG_MAIN_KB   512
+#define KLOG_KERNEL_KB 128
 
 #include "hook.h"
 static bool hooked = false;
@@ -64,12 +66,13 @@ struct logger_reader {
 	size_t			r_off;	/* current read head offset */
 };
 
-static void logger_kernel_write(struct console *co, const char *s, unsigned count);
+static void klogger_kernel_write(struct console *co, const char *s, unsigned count);
+
 static struct console loggercons = {
-    name:	"logger",
-    write:	logger_kernel_write,
-    flags:	CON_ENABLED,
-    index:	-1,
+	name:	"logger",
+	write:	klogger_kernel_write,
+	flags:	CON_ENABLED,
+	index:	-1,
 };
 
 /* logger_offset - returns index 'n' into the log via (optimized) modulus */
@@ -156,7 +159,7 @@ static ssize_t do_read_log_to_user(struct logger_log *log,
 }
 
 /*
- * logger_read - our log's read() method
+ * klogger_read - our log's read() method
  *
  * Behavior:
  *
@@ -167,8 +170,8 @@ static ssize_t do_read_log_to_user(struct logger_log *log,
  * Optimal read size is LOGGER_ENTRY_MAX_LEN. Will set errno to EINVAL if read
  * buffer is insufficient to hold next entry.
  */
-static ssize_t logger_read(struct file *file, char __user *buf,
-			   size_t count, loff_t *pos)
+static ssize_t klogger_read(struct file *file, char __user *buf,
+			    size_t count, loff_t *pos)
 {
 	struct logger_reader *reader = file->private_data;
 	struct logger_log *log = reader->log;
@@ -258,7 +261,6 @@ static inline int clock_interval(size_t a, size_t b, size_t c)
 		if (a < c && b >= c)
 			return 1;
 	}
-
 	return 0;
 }
 
@@ -397,11 +399,11 @@ ssize_t klogger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 static struct logger_log *get_log_from_minor(int);
 
 /*
- * logger_open - the log's open() file operation
+ * klogger_open - the log's open() file operation
  *
  * Note how near a no-op this is in the write-only case. Keep it that way!
  */
-static int logger_open(struct inode *inode, struct file *file)
+static int klogger_open(struct inode *inode, struct file *file)
 {
 	struct logger_log *log;
 	int ret;
@@ -437,11 +439,11 @@ static int logger_open(struct inode *inode, struct file *file)
 }
 
 /*
- * logger_release - the log's release file operation
+ * klogger_release - the log's release file operation
  *
  * Note this is a total no-op in the write-only case. Keep it that way!
  */
-static int logger_release(struct inode *ignored, struct file *file)
+static int klogger_release(struct inode *ignored, struct file *file)
 {
 	if (file->f_mode & FMODE_READ) {
 		struct logger_reader *reader = file->private_data;
@@ -456,7 +458,7 @@ static int logger_release(struct inode *ignored, struct file *file)
 }
 
 /*
- * logger_poll - the log's poll file operation, for poll/select/epoll
+ * klogger_poll - the log's poll file operation, for poll/select/epoll
  *
  * Note we always return POLLOUT, because you can always write() to the log.
  * Note also that, strictly speaking, a return value of POLLIN does not
@@ -464,7 +466,7 @@ static int logger_release(struct inode *ignored, struct file *file)
  * chance that the writer can lap the reader in the interim between poll()
  * returning and the read() request.
  */
-static unsigned int logger_poll(struct file *file, poll_table *wait)
+static unsigned int klogger_poll(struct file *file, poll_table *wait)
 {
 	struct logger_reader *reader;
 	struct logger_log *log;
@@ -537,37 +539,24 @@ static long klogger_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 	return ret;
 }
 
-static const struct file_operations logger_fops = {
-	.owner = THIS_MODULE,
-	.read = logger_read,
-	.aio_write = klogger_aio_write,
-	.poll = logger_poll,
-	.unlocked_ioctl = klogger_ioctl,
-	.compat_ioctl = klogger_ioctl,
-	.open = logger_open,
-	.release = logger_release,
-};
-
 #ifdef RESIZE_LOG
-static unsigned char _buf_log_big[512*1024];
+static unsigned char _buf_log_big[KLOG_MAIN_KB*1024];
 static bool resized = false;
-static unsigned long prev_size = 0;
-static unsigned long prev_offt = 0;
-static unsigned char *prev_addr = NULL;
-static struct logger_log *orig_log;
+static struct logger_log *main_log = NULL;
+static struct logger_log prev_state;
 #endif
+
+static unsigned char _buf_log_kernel[KLOG_KERNEL_KB*1024];
 
 static struct file_operations kernel_logger_fops = {
 	.owner = THIS_MODULE,
-	.read = logger_read,
-	.poll = logger_poll,
+	.read = klogger_read,
+	.poll = klogger_poll,
 	.unlocked_ioctl = klogger_ioctl,
 	.compat_ioctl = klogger_ioctl,
-	.open = logger_open,
-	.release = logger_release,
+	.open = klogger_open,
+	.release = klogger_release,
 };
-
-static unsigned char _buf_log_kernel[128*1024];
 
 static struct logger_log log_kernel = {
 	.buffer = _buf_log_kernel,
@@ -585,7 +574,7 @@ static struct logger_log log_kernel = {
 	.size = sizeof(_buf_log_kernel),
 };
 
-static void logger_kernel_write(struct console *co, const char *s, unsigned count)
+static void klogger_kernel_write(struct console *co, const char *s, unsigned count)
 {
 	struct logger_entry header;
 	struct timespec now;
@@ -598,6 +587,13 @@ static void logger_kernel_write(struct console *co, const char *s, unsigned coun
 	ssize_t ret = 0;
 	const char tag[7] ="kernel\0";
 	iov=&vec[0];
+
+	/* remove hook if it is not more required */
+	if (hooked && resized) {
+		hook_exit();
+		hooked = false;
+	}
+
 	/* since s is a pointer to LOG_BUF and we know LOG_BUF is continuous,
 	 * s[-3]='<', s[-2] is the log level and s[-1]='>'.
 	 * If not, we set loglevel as default value 0
@@ -657,6 +653,7 @@ static struct logger_log *get_log_from_minor(int minor)
 	return NULL;
 }
 
+/* hooked function */
 ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 			 unsigned long nr_segs, loff_t ppos)
 {
@@ -667,10 +664,9 @@ ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 
 	mutex_lock(&log->mutex);
 	if (log->size != sizeof(_buf_log_big) && strcmp(dev->name, "log_main") == 0) {
-		prev_size = log->size;
-		prev_addr = log->buffer;
-		prev_offt = log->w_off;
-		orig_log = log;
+
+		memcpy(&prev_state, log, sizeof(prev_state));
+		main_log = log;
 
 		memcpy(_buf_log_big, log->buffer, log->w_off);
 
@@ -678,9 +674,9 @@ ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 		log->size = sizeof(_buf_log_big);
 		resized = true;
 
-		pr_info(TAG ": buffer size of %s increased from %luK to %luK\n",
-		        dev->name, prev_size >> 10,
-		        (unsigned long) sizeof(_buf_log_big) >> 10);
+		pr_info(TAG ": buffer size of %s increased from %uK to %uK\n",
+		        dev->name, (unsigned) prev_state.size >> 10,
+		        (unsigned) sizeof(_buf_log_big) >> 10);
 	}
 	mutex_unlock(&log->mutex);
 
@@ -701,8 +697,8 @@ static int __init init_log(struct logger_log *log)
 		return ret;
 	}
 
-	pr_info(TAG ": created %luK buffer for %s\n",
-	       (unsigned long) log->size >> 10, log->misc.name);
+	pr_info(TAG ": created %uK buffer for %s\n",
+	       (unsigned) log->size >> 10, log->misc.name);
 
 	return 0;
 }
@@ -711,8 +707,8 @@ static int __init klogger_init(void)
 {
 	int ret;
 #ifdef RESIZE_LOG
-	hook_init();
-	hooked = true;
+	memset(&prev_state, 0, sizeof(prev_state));
+	hooked = (hook_init() == 0);
 #endif
 	ret = init_log(&log_kernel);
 	if (unlikely(ret))
@@ -725,15 +721,20 @@ out:
 static void __exit klogger_exit(void)
 {
 #ifdef RESIZE_LOG
-	if (hooked) hook_exit();
-
-	mutex_lock(&orig_log->mutex);
-	orig_log->size = prev_size;
-	orig_log->buffer = prev_addr;
-	orig_log->w_off = prev_offt;
-	mutex_unlock(&orig_log->mutex);
-	orig_log = NULL;
-	pr_info(TAG ": buffer size restored to %luK\n", prev_size >> 10);
+	if (hooked) {
+		hook_exit();
+		hooked = false;
+	}
+	if (resized) {
+		mutex_lock(&main_log->mutex);
+		main_log->size = prev_state.size;
+		main_log->buffer = prev_state.buffer;
+		main_log->w_off = prev_state.w_off;
+		mutex_unlock(&main_log->mutex);
+		pr_info(TAG ": buffer size restored to %uK\n",
+			(unsigned) prev_state.size >> 10);
+	}
+	main_log = NULL;
 #endif
 	unregister_console(&loggercons);
 	misc_deregister(&log_kernel.misc);
@@ -743,7 +744,7 @@ module_init(klogger_init);
 module_exit(klogger_exit);
 
 MODULE_ALIAS(TAG);
-MODULE_DESCRIPTION("Allow to get kernel logs with adb logcat");
+MODULE_DESCRIPTION("Enhanced adb logger");
 MODULE_AUTHOR("Tanguy Pruvot, CyanogenDefy");
-MODULE_VERSION("2.0");
+MODULE_VERSION("2.1");
 MODULE_LICENSE("GPL");
