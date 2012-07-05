@@ -74,8 +74,10 @@ hwui.print_config=choice
 # and flash flayer (required to allow flash objects display)
 # Limited to 91 chars ! You can also use "*" and place files named
 # by process names in /data/local/hwui.allow/ (or use HWA Selector app)
-hwui.whitelist=com.android.browser:com.adobe.flashplayer
-hwui.blacklist=0
+#hwui.whitelist=com.android.browser:com.adobe.flashplayer
+#hwui.blacklist=0
+
+hwui.blacklist=none
 
 # CpuGovernorService (require ondemand cpu governor)
 dev.pm.dyn_samplingrate=1
