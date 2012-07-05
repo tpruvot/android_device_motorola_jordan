@@ -14,6 +14,7 @@ obj-m += logcap/
 obj-m += usbled/
 obj-m += netfilter/
 obj-m += klogger/
+obj-m += thumbee/
 
 # mb525/mb526 specific
 obj-m += proximity/

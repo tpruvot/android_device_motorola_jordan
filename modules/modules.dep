@@ -10,6 +10,7 @@ proximity.ko: symsearch.ko
 ionpvr.ko: symsearch.ko
 ion.ko: symsearch.ko ionpvr.ko
 klogger.ko:
+thumbee.ko:
 sysfs_egl.ko:
 wl127x_test.ko:
 vpnclient.ko:
