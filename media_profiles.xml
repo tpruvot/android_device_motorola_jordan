@@ -118,6 +118,18 @@
 
         </EncoderProfile>
 
+        <EncoderProfile quality="qcif" fileFormat="3gp" duration="30">
+            <Video codec="h264"
+                   bitRate="128000"
+                   width="320"
+                   height="240"
+                   frameRate="15" />
+            <Audio codec="amrnb"
+                   bitRate="12200"
+                   sampleRate="8000"
+                   channels="1" />
+        </EncoderProfile>
+
         <EncoderProfile quality="timelapseqcif" fileFormat="mp4" duration="30">
             <Video codec="m4v"
                    bitRate="192000"

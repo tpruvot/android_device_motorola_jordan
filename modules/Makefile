@@ -18,6 +18,7 @@ obj-m += thumbee/
 
 # mb525/mb526 specific
 obj-m += proximity/
+obj-m += omap3/gpu/pvr/
 
 # experimental
 # obj-m += ion/ ionpvr/
