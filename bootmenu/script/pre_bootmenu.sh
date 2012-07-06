@@ -89,9 +89,12 @@ if [ -L /tmp ]; then
   mkdir /tmp && busybox mount -t ramfs ramfs /tmp
 fi
 
+# klogger must be started before adb, so do it here
+$BB insmod /system/lib/modules/symsearch.ko 2>/dev/null
+$BB insmod /system/lib/modules/klogger.ko
+
 # load early the backlight to reduce the button backlight
 if [ -x /system/etc/init.d/08backlight ]; then
-   insmod /system/lib/modules/symsearch.ko 2>/dev/null
    /etc/init.d/08backlight
 fi
 
