@@ -29,12 +29,19 @@
 #include <asm/ioctls.h>
 
 #define TAG "klogger"
-#define RESIZE_LOG
+
+#ifndef DEFYPLUS
+#define RESIZE_LOG /* not required on Defy+ */
+#endif
+
 #define KLOG_MAIN_KB   512
 #define KLOG_KERNEL_KB 128
 
 #include "hook.h"
+
+#ifdef RESIZE_LOG
 static bool hooked = false;
+#endif
 
 /*
  * struct logger_log - represents a specific log, such as 'main' or 'radio'
@@ -588,11 +595,13 @@ static void klogger_kernel_write(struct console *co, const char *s, unsigned cou
 	const char tag[7] ="kernel\0";
 	iov=&vec[0];
 
+#ifdef RESIZE_LOG
 	/* remove hook if it is not more required */
 	if (hooked && resized) {
 		hook_exit();
 		hooked = false;
 	}
+#endif
 
 	/* since s is a pointer to LOG_BUF and we know LOG_BUF is continuous,
 	 * s[-3]='<', s[-2] is the log level and s[-1]='>'.
@@ -654,6 +663,7 @@ static struct logger_log *get_log_from_minor(int minor)
 }
 
 /* hooked function */
+#ifdef RESIZE_LOG
 ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 			 unsigned long nr_segs, loff_t ppos)
 {
@@ -682,9 +692,12 @@ ssize_t logger_aio_write(struct kiocb *iocb, const struct iovec *iov,
 
 	return ret;
 }
+#endif /* RESIZE_LOG */
 
 struct hook_info g_hi[] = {
+#ifdef RESIZE_LOG
 	HOOK_INIT(logger_aio_write),
+#endif
 	HOOK_INIT_END
 };
 
@@ -746,5 +759,5 @@ module_exit(klogger_exit);
 MODULE_ALIAS(TAG);
 MODULE_DESCRIPTION("Enhanced adb logger");
 MODULE_AUTHOR("Tanguy Pruvot, CyanogenDefy");
-MODULE_VERSION("2.1");
+MODULE_VERSION("2.2");
 MODULE_LICENSE("GPL");
