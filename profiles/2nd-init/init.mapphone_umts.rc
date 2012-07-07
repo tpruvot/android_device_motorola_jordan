@@ -15,15 +15,8 @@ on init
     insmod /system/lib/modules/symsearch.ko
     insmod /system/lib/modules/klogger.ko
 
-    insmod /system/lib/modules/pvr-off.ko
-
-    # workaround for the missing omapfb.vram bootarg
-    write /sys/devices/platform/omapdss/overlay0/enabled 0
-    write /sys/devices/platform/omapfb/graphics/fb0/size 4194304
-    write /sys/devices/platform/omapdss/overlay0/enabled 1
-
-    insmod /system/lib/modules/pvrsrvkm.ko
-    insmod /system/lib/modules/omaplfb.ko
+    # PVR Drivers
+    exec /system/bootmenu/script/pvr.sh
 
     insmod /system/lib/modules/thumbee.ko
 
