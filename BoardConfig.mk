@@ -60,12 +60,19 @@ WIFI_DRIVER_FW_AP_PATH      := "/system/etc/wifi/fw_tiwlan_ap.bin"
 WPA_SUPPL_APPROX_USE_RSSI   := true
 WPA_SUPPL_WITH_SIGNAL_POLL  := true
 # CM9
+WIFI_DRIVER_LOADER_DELAY    := 200000
 WIFI_AP_DRIVER_MODULE_PATH  := "/system/lib/modules/tiap_drv.ko"
 WIFI_AP_DRIVER_MODULE_NAME  := tiap_drv
 WIFI_AP_FIRMWARE_LOADER     := wlan_ap_loader
 WIFI_AP_DRIVER_MODULE_ARG   := ""
+BOARD_HOSTAPD_SERVICE_NAME  := hostap_netd
+BOARD_HOSTAPD_NO_ENTROPY    := true
 BOARD_HOSTAPD_DRIVER        := true
 BOARD_HOSTAPD_DRIVER_NAME   := wilink
+BOARD_HOSTAPD_TIAP_ROOT     := system/wlan/ti/WiLink_AP
+
+# Netfilter
+#BOARD_WITHOUT_IPV6_QUOTA := true
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
@@ -77,6 +84,7 @@ BOARD_USE_USB_MASS_STORAGE_SWITCH := true
 BOARD_MASS_STORAGE_FILE_PATH := "/sys/devices/platform/usb_mass_storage/lun0/file"
 TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/devices/platform/usb_mass_storage/lun0/file"
 BOARD_MTP_DEVICE := "/dev/mtp"
+BOARD_VOLD_EMMC_SHARES_DEV_MAJOR := true
 
 # Build options
 BOARD_BOOTIMAGE_MAX_SIZE := $(call image-size-from-data-size,0x00280000)
@@ -92,6 +100,9 @@ TARGET_USE_OMX_RECOVERY := true
 TARGET_USE_OMAP_COMPAT  := true
 BUILD_WITH_TI_AUDIO := 1
 BUILD_PV_VIDEO_ENCODERS := 1
+# Required for videos (youtube)
+BOARD_WITHOUT_PIXEL_FORMAT_YV12 := true
+BOARD_CUSTOM_OMX_16BPP_YUV := 27
 
 # Bootmenu
 BOARD_USES_BOOTMENU := true
@@ -125,15 +136,13 @@ TARGET_RECOVERY_PRE_COMMAND_CLEAR_REASON := true
 # COMMON_GLOBAL_CFLAGS += -DHAVE_FM_RADIO
 
 # Egl Specific
-USE_OPENGL_RENDERER := false
+USE_OPENGL_RENDERER := true
 BOARD_EGL_CFG := device/motorola/jordan/egl.cfg
 DEFAULT_FB_NUM := 0
 BOARD_USE_YUV422I_DEFAULT_COLORFORMAT := true
-BOARD_NO_RGBX_8888 := true
 BOARD_USES_OVERLAY := true
-COMMON_GLOBAL_CFLAGS += -DMISSING_EGL_EXTERNAL_IMAGE -DMISSING_EGL_PIXEL_FORMAT_YV12
-COMMON_GLOBAL_CFLAGS += -DMISSING_GRALLOC_BUFFERS
-
+BOARD_WITHOUT_HW_COMPOSER := true
+ENABLE_WEBGL := true
 # Camera
 USE_CAMERA_STUB := false
 BOARD_OVERLAY_BASED_CAMERA_HAL := true
@@ -146,11 +155,6 @@ BOARD_USES_AUDIO_LEGACY := true
 TARGET_PROVIDES_LIBAUDIO := true
 BOARD_USE_KINETO_COMPATIBILITY := true
 
-# Recent gingerbread kernel specific, to double check (Defy+)
-ifeq ($(BOARD_DEFY_MODEL),DEFY_PLUS)
-BOARD_USE_CID_ROTATE_34 := true
-endif
-
 # If kernel sources are present in repo, here is the location
 TARGET_KERNEL_SOURCE := $(ANDROID_BUILD_TOP)/kernel/moto/mb525
 TARGET_KERNEL_CONFIG   := mapphone_mb525_defconfig
@@ -158,3 +162,4 @@ TARGET_PREBUILT_KERNEL := $(ANDROID_BUILD_TOP)/device/motorola/jordan/kernel
 
 # Extra : external modules sources
 TARGET_KERNEL_MODULES_EXT := $(ANDROID_BUILD_TOP)/device/motorola/jordan/modules
+

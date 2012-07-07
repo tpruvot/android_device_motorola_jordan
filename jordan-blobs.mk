@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEVICE_PREBUILT := device/motorola/jordan/prebuilt
+device_path = device/motorola/jordan
 
-#temporary cm9 bootanimation
-PRODUCT_COPY_FILES += \
-	$(DEVICE_PREBUILT)/bootanimation.zip:system/media/bootanimation.zip 
+DEVICE_PREBUILT := ${device_path}/prebuilt
 
 PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/etc/terminfo/l/linux:system/etc/terminfo/l/linux \
-	$(DEVICE_PREBUILT)/etc/terminfo/x/xterm:system/etc/terminfo/x/xterm 
+	$(DEVICE_PREBUILT)/etc/terminfo/x/xterm:system/etc/terminfo/x/xterm \
 
-#key layouts, names must fit the ones in /proc/bus/input/devices, qwerty.kl is the fallback one.
+# Key layouts, names must fit the ones in /proc/bus/input/devices, qwerty.kl is the fallback one.
 PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/usr/idc/internal.idc:system/usr/idc/lm3530_led.idc \
 	$(DEVICE_PREBUILT)/usr/idc/internal.idc:system/usr/idc/accelerometer.idc \
@@ -37,17 +35,18 @@ PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/usr/keypad.kl:system/usr/keylayout/sholes-keypad.kl \
 	$(DEVICE_PREBUILT)/usr/keypad.kl:system/usr/keylayout/umts_jordan-keypad.kl \
 	$(DEVICE_PREBUILT)/usr/cpcap-key.kl:system/usr/keylayout/cpcap-key.kl \
-	$(DEVICE_PREBUILT)/usr/keychars/cpcap-key.kcm:system/usr/keychars/cpcap-key.kcm 
-
+	$(DEVICE_PREBUILT)/usr/keychars/cpcap-key.kcm:system/usr/keychars/cpcap-key.kcm \
 
 PRODUCT_COPY_FILES += \
-	device/motorola/jordan/bootmenu/recovery/recovery.fstab:system/etc/recovery.fstab \
+	${device_path}/vold.fstab:system/etc/vold.fstab \
+	${device_path}/media_profiles.xml:system/etc/media_profiles.xml \
+	${device_path}/modules/modules.alias:system/lib/modules/modules.alias \
+	${device_path}/modules/modules.dep:system/lib/modules/modules.dep \
 	$(DEVICE_PREBUILT)/etc/init.d/01sysctl:system/etc/init.d/01sysctl \
-	$(DEVICE_PREBUILT)/etc/init.d/02ipv6:system/etc/init.d/02ipv6 \
+	$(DEVICE_PREBUILT)/etc/init.d/02baseband:system/etc/init.d/02baseband \
 	$(DEVICE_PREBUILT)/etc/init.d/03firstboot:system/etc/init.d/03firstboot \
-	$(DEVICE_PREBUILT)/etc/init.d/04pdsbackup:system/etc/init.d/04pdsbackup \
+	$(DEVICE_PREBUILT)/etc/init.d/04filesystems:system/etc/init.d/04filesystems \
 	$(DEVICE_PREBUILT)/etc/init.d/05mountsd:system/etc/init.d/05mountsd \
-	$(DEVICE_PREBUILT)/etc/init.d/07camera:system/etc/init.d/07camera \
 	$(DEVICE_PREBUILT)/etc/init.d/08backlight:system/etc/init.d/08backlight \
 	$(DEVICE_PREBUILT)/etc/init.d/10gpiofix:system/etc/init.d/10gpiofix \
 	$(DEVICE_PREBUILT)/etc/init.d/90multitouch:system/etc/init.d/90multitouch \
@@ -65,11 +64,17 @@ PRODUCT_COPY_FILES += \
 	device/motorola/jordan/modules/modules.alias:system/lib/modules/modules.alias \
 	device/motorola/jordan/modules/modules.dep:system/lib/modules/modules.dep \
 
+# New CM9 backup list system (addon.d)
+PRODUCT_COPY_FILES += \
+	${device_path}/releasetools/addon.d/60-baseband.sh:system/addon.d/60-baseband.sh \
+	${device_path}/releasetools/addon.d/70-gapps.sh:system/addon.d/70-gapps.sh \
+	${device_path}/releasetools/addon.d/70-multiboot.sh:system/addon.d/70-multiboot.sh \
 
-ifdef CM_RELEASE
-	PRODUCT_COPY_FILES += device/motorola/jordan/custom_backup_release.txt:system/etc/custom_backup_list.txt
-else
-	PRODUCT_COPY_FILES += device/motorola/jordan/custom_backup_list.txt:system/etc/custom_backup_list.txt
+# Backup kernel modules and bootmenu overclock config
+ifndef CM_RELEASE
+PRODUCT_COPY_FILES += \
+	${device_path}/releasetools/addon.d/70-bootmenu.sh:system/addon.d/70-bootmenu.sh \
+
 endif
 
 #end of jordan-blobs.mk

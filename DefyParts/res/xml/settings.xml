@@ -12,6 +12,14 @@
                         android:entries="@array/charge_led_mode_entries"
                         android:entryValues="@array/charge_led_mode_values" />
 
+        <!-- Button brightness scaling -->
+        <com.cyanogenmod.settings.device.BrightnessPreference
+                android:key="button_brightness_scale"
+                android:persistent="false"
+                android:title="@string/button_brightness_scale_title"
+                android:dialogTitle="@string/button_brightness_scale_title"
+                android:summary="@string/button_brightness_scale_summary" />
+
         <!-- Number of multitouch points -->
         <ListPreference android:key="touch_points"
                         android:persistent="false"
@@ -32,7 +40,9 @@
         </PreferenceScreen>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/other_settings_title">
+    <PreferenceCategory android:key="other"
+                        android:title="@string/other_settings_title">
+
         <PreferenceScreen android:key="compass_calibrate"
                           android:title="@string/compass_calibrate">
                           <intent
@@ -41,13 +51,11 @@
                              android:targetClass="com.motorola.CompassCalibrate.CompassCalibrate" />
         </PreferenceScreen>
 
-        <PreferenceScreen android:key="baseband_switcher"
-                          android:title="@string/baseband_switcher">
-                          <intent
-                             android:action="android.intent.action.MAIN"
-                             android:targetPackage="com.itfunzbasebandswitcher"
-                             android:targetClass="com.itfunzbasebandswitcher.MainActivity" />
-        </PreferenceScreen>
+        <com.cyanogenmod.settings.device.BasebandSelectionPreference
+                android:key="baseband_selection"
+                android:persistent="false"
+                android:title="@string/baseband_selection" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

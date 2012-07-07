@@ -8,18 +8,10 @@
 
 # Delete unwanted apps
 rm -f $REPACK/ota/system/app/RomManager.apk
-#rm -f $REPACK/ota/system/app/MusicFX.apk
-#rm -f $REPACK/ota/system/app/DSPManager.apk
 rm -f $REPACK/ota/system/app/VideoEditor.apk
-#rm -f $REPACK/ota/system/app/Term.apk
 
 # Remove big videos
 rm -f $REPACK/ota/system/media/video/*.480p.mp4
-
-# Apk required, (forbidden in product copy files in ics)
-cp $DEVICE_TOP/prebuilt/app/basebandswitcherV4.0.apk $REPACK/ota/system/app/BasebandSwitcher.apk
-
-cp -f $VENDOR_TOP/app/* $REPACK/ota/system/app/
 
 # these scripts are not required or bad
 rm -f $REPACK/ota/system/etc/init.d/04modules
@@ -31,28 +23,17 @@ chmod +x $REPACK/ota/system/bin/mount_ext3.sh
 mkdir -p $REPACK/ota/system/etc/terminfo/x
 cp $REPACK/ota/system/etc/terminfo/l/linux $REPACK/ota/system/etc/terminfo/x/xterm
 
-# keep multiboot specific files, if installed
-cat $DEVICE_TOP/releasetools/multiboot_backup_list.txt >> $REPACK/ota/system/etc/custom_backup_list.txt
-
 # prebuilt boot, devtree, logo & updater-script
 
 rm -f $REPACK/ota/boot.img
 
 cp -f $DEVICE_TOP/updater-script $REPACK/ota/META-INF/com/google/android/updater-script
 
-if [ -n "$CM_RELEASE" ]; then
-  cat $DEVICE_TOP/updater-script-rel >> $REPACK/ota/META-INF/com/google/android/updater-script
-  cp -f $VENDOR_TOP/boot-222-179-4.smg $REPACK/ota/boot.img
-  cp -f $VENDOR_TOP/devtree-222-179-2.smg $REPACK/ota/devtree.img
-  cp -f $DEVICE_TOP/logo-google.raw $REPACK/ota/logo.img
-fi
-
 # Opensource init binary
 cp -f $DEVICE_OUT/root/init $REPACK/ota/system/bootmenu/2nd-init/init
 
 # Use a prebuilt adbd configured for root access instead of normal one, for dev purpose
 cp -f $REPACK/ota/system/bootmenu/binary/adbd $REPACK/ota/system/bin/adbd
-#cp -f $DEVICE_OUT/root/sbin/adbd $REPACK/ota/system/bin/adbd
 
 cp -f $DEVICE_TOP/bootmenu/binary/2nd-init $REPACK/ota/system/bootmenu/binary/2nd-init
 

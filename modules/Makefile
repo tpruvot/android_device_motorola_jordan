@@ -1,5 +1,5 @@
 # Makefile for Android Defy kernel-omap tree
-# "make jordan_modules" in repo root (not here)
+# "make device_modules" in repo root (not here)
 
 
 # list of modules to build :
@@ -12,6 +12,13 @@ obj-m += gpiofix/
 obj-m += clockfix/
 obj-m += logcap/
 obj-m += usbled/
+obj-m += netfilter/
+
+# mb525/mb526 specific
+obj-m += proximity/
+obj-m += pvr/
+# experimental
+#obj-m += ion/
 
 
 PWD := $(shell pwd)
@@ -28,7 +35,7 @@ clean:
 	@cd $(PWD) && git checkout *.ko
 
 
-EXTRA_CFLAGS += -I$(KERNEL_DIR) -DUTS_RELEASE=\\\"2.6.32.9\\\"
+EXTRA_CFLAGS += -I$(KERNEL_DIR) -DUTS_RELEASE=\\\"2.6.32.9\\\" 
 
 .PHONY: all
 #######################################################################################

@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 
-$(call inherit-product, device/motorola/jordan/full_jordan.mk)
+TARGET_BOOTANIMATION_NAME := vertical-480x854
 
-# Inherit some common CM9 stuff.
 $(call inherit-product-if-exists, vendor/cm/config/common_full_phone.mk)
 $(call inherit-product-if-exists, vendor/cm/config/gsm.mk)
+$(call inherit-product, device/motorola/jordan/full_jordan.mk)
 
 PRODUCT_NAME := cm_jordan
 PRODUCT_BRAND := MOTO
@@ -40,5 +40,4 @@ PRODUCT_BUILD_PROP_OVERRIDES += \
     PRIVATE_BUILD_DESC="umts_jordan_emara-user 2.3.6 4.5.1-134_DFP-132 1317968148 release-keys" \
     BUILD_NUMBER=${DATE} \
     BUILD_VERSION_TAGS=release-keys \
-    TARGET_BUILD_TYPE=user
-
+    TARGET_BUILD_TYPE=eng

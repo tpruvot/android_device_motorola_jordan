@@ -9,6 +9,47 @@ on init
     symlink mmcblk1p24 /dev/block/cache
     symlink mmcblk1p25 /dev/block/userdata
 
+    # note: we use 2nd-init, /system is already mounted
+
+    #PVR Drivers
+    insmod /system/lib/modules/symsearch.ko
+    insmod /system/lib/modules/pvroff.ko
+    write /sys/devices/platform/omapdss/overlay0/enabled 0
+    write /sys/devices/platform/omapfb/graphics/fb0/size 4194304
+    write /sys/devices/platform/omapdss/overlay0/enabled 1
+    insmod /system/lib/modules/pvrsrvkm.ko
+    insmod /system/lib/modules/omaplfb.ko
+
+    # Load kernel modules
+    insmod /system/lib/modules/netmux.ko
+    insmod /system/lib/modules/netmux_linkdriver.ko
+    insmod /system/lib/modules/modem_pm_driver.ko
+
+    insmod /system/lib/modules/ip6_tables.ko
+    insmod /system/lib/modules/ip6table_filter.ko
+    #insmod /system/lib/modules/ip6table_mangle.ko
+    insmod /system/lib/modules/ip6t_REJECT.ko
+    insmod /system/lib/modules/ip6t_LOG.ko
+
+    insmod /system/lib/modules/xt_tcpmss.ko
+    insmod /system/lib/modules/xt_TCPMSS.ko
+    #insmod /system/lib/modules/iptable_mangle.ko
+    insmod /system/lib/modules/xt_multiport.ko
+    insmod /system/lib/modules/xt_quota2.ko
+    insmod /system/lib/modules/xt_owner2.ko
+
+    insmod /system/lib/modules/tun.ko
+
+    insmod /system/lib/modules/symsearch.ko
+    insmod /system/lib/modules/mmcfix.ko
+    insmod /system/lib/modules/usbled.ko
+    insmod /system/lib/modules/clockfix.ko
+    insmod /system/lib/modules/gpiofix.ko
+
+    # maybe later for /data or /cache, need tests
+    # insmod /system/lib/modules/jbd2.ko
+    # insmod /system/lib/modules/ext4.ko
+
 on fs
     log "== mapphone: on fs ------------------------"
 
@@ -27,6 +68,9 @@ on post-fs
     symlink /dev/hp3a-omap /dev/hp3A-omap
 
     mount rootfs rootfs / rw remount
+
+# PDS Mount
+    exec /system/bootmenu/script/pdsbackup.sh
 
 # Busybox
     mkdir /data/local/tmp 0777 system shell
@@ -82,8 +126,8 @@ on post-fs
 
 on post-fs-data
     log "== mapphone: on post-fs-data -------------------"
-   
-# Dont delete this line, used as event in bootmenu (cpu settings & postbootmenu)
+
+    # event in bootmenu (cpu settings & postbootmenu)
     exec /system/bin/logwrapper postbootmenu
 
     # Enable ADB mode (made in init.d)
@@ -103,9 +147,13 @@ on post-fs-data
     chown radio radio /pds/bp_nvm
     chmod 0770 /pds/bp_nvm
     chmod 0770 /pds/security
+
+    chown root system /dev/socket
+    chmod 0775 /dev/socket
+
     # wifi dirs
-    mkdir /data/misc/wifi/hostapd.sockets 0770 wifi wifi
-    mkdir /data/misc/wifi/sockets 0770 wifi wifi
+    mkdir /data/misc/wifi/hostapd 0770 system wifi
+    mkdir /data/misc/wifi/sockets 0770 system wifi
     mkdir /data/misc/dhcp 0770 dhcp dhcp
     mkdir /data/comm_drv 0770 radio radio
     chown dhcp dhcp /data/misc/dhcp
@@ -123,30 +171,12 @@ on post-fs-data
     # create dropbear directory
     mkdir /data/dropbear 0755 root shell
 
+    # hwui config folder for process names white list
+    mkdir /data/local/hwui.allow
+    chown system nobody /data/local/hwui.allow
+    chmod 0775 /data/local/hwui.allow
+
     setprop vold.post_fs_data_done 1
-
-on init
-    log "== mapphone: on init ----------------------"
-
-    # Install kernel modules
-    insmod /system/lib/modules/netmux.ko
-    insmod /system/lib/modules/netmux_linkdriver.ko
-    insmod /system/lib/modules/modem_pm_driver.ko
-
-    insmod /system/lib/modules/xt_multiport.ko
-    insmod /system/lib/modules/xt_quota2.ko
-    #insmod /system/lib/modules/xt_owner2.ko
-
-    insmod /system/lib/modules/tun.ko
-    insmod /system/lib/modules/symsearch.ko
-    insmod /system/lib/modules/mmcfix.ko
-    insmod /system/lib/modules/usbled.ko
-    insmod /system/lib/modules/clockfix.ko
-
-    # Cifs module is actually not compiled by us
-    insmod /system/lib/modules/nls_utf8.ko
-    insmod /system/lib/modules/slow-work.ko
-    insmod /system/lib/modules/cifs.ko
 
 on charger
     log "== mapphone: on charger -------------------"
@@ -224,6 +254,7 @@ on property:service.adb.root=1
     log "on property service.adb.root=" $service.adb.root
     restart adbd
 
+#TODO: key shortcuts seems buggy in ics
 service reboot_key /system/bin/reboot
     user system
     group root
@@ -234,6 +265,8 @@ service reboot_key /system/bin/reboot
 service usbd /system/bin/usbd
     class main
     user root
+    socket usbd stream 666 root system
+
 service charge /system/bin/charge_only_mode
     group root
     oneshot
@@ -283,12 +316,21 @@ service wlan_loader /system/bin/wlan_loader -f /system/etc/wifi/fw_wlan1271.bin 
     class main
     disabled
     oneshot
+service wlan_ap_loader /system/bin/tiap_loader -f /system/etc/wifi/fw_tiwlan_ap.bin -i /system/etc/wifi/tiwlan_ap.ini -e /pds/wifi/nvs_map.bin
+    class main
+    disabled
+    oneshot
+
 service wpa_supplicant /system/bin/wpa_supplicant -Dtiwlan0 -itiwlan0 -c/data/misc/wifi/wpa_supplicant.conf
     class main
     socket wpa_tiwlan0 dgram 660 wifi wifi
     disabled
     oneshot
-service wlan_ap_loader /system/bin/tiap_loader -f /system/etc/wifi/fw_tiwlan_ap.bin -i /system/etc/wifi/tiwlan_ap.ini -e /pds/wifi/nvs_map.bin
+
+service hostap_netd /system/bin/hostap -d /data/misc/wifi/hostapd.conf
+    class main
+    group wifi system inet net_admin
+    socket tiap0 dgram 660 wifi wifi
     disabled
     oneshot
 

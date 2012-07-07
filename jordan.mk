@@ -59,8 +59,6 @@ PRODUCT_COPY_FILES += \
 	frameworks/base/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
 	frameworks/base/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
 	frameworks/base/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
-	frameworks/base/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
-	frameworks/base/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
 	frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
 	packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml \
 
@@ -71,11 +69,10 @@ PRODUCT_PACKAGES += \
 	libaudiohw_legacy audio.primary.jordan \
 
 # TO FIX for ICS
-#PRODUCT_PACKAGES += gralloc.jordan hwcomposer.jordan
 PRODUCT_PACKAGES += gralloc.default hwcomposer.default
 
 # ICS Camera
-PRODUCT_PACKAGES += Camera camera.jordan
+PRODUCT_PACKAGES += camera.jordan
 
 # Wifi packages
 PRODUCT_PACKAGES += iwmulticall hostap wlan_loader wlan_cu wpa_supplicant
@@ -95,17 +92,20 @@ PRODUCT_PACKAGES += libOMX.TI.WMA.decode libOMX.TI.Video.Decoder libOMX.TI.Video
 PRODUCT_PACKAGES += libfnc DefyParts Usb 
 
 # Core stuff
-PRODUCT_PACKAGES += charge_only_mode mot_boot_mode lights.jordan sensors.jordan e2fsck
+PRODUCT_PACKAGES += charge_only_mode mot_boot_mode lights.jordan sensors.jordan
 
 # Publish that we support the live wallpaper feature.
 PRODUCT_PACKAGES += LiveWallpapers LiveWallpapersPicker MagicSmokeWallpapers 
 PRODUCT_PACKAGES += VisualizationWallpapers librs_jni
 
 # Add DroidSSHd (dropbear) Management App - tpruvot/android_external_droidsshd @ github
-PRODUCT_PACKAGES += DroidSSHd dropbear dropbearkey sftp-server scp ssh
+PRODUCT_PACKAGES += DroidSSHd dropbear dropbearkey sftp-server scp ssh rsync
 
 # CM9 apps
-PRODUCT_PACKAGES += Trebuchet FileManager Torch
+PRODUCT_PACKAGES += FileManager Torch Apollo
+
+# Experimental TI OpenLink
+PRODUCT_PACKAGES += libnl_2 iw
 
 # copy all vendor (motorola) kernel modules to system/lib/modules
 PRODUCT_COPY_FILES += $(shell test -d vendor/motorola/jordan/lib/modules &&  \
@@ -126,13 +126,11 @@ PRODUCT_COPY_FILES += \
 $(call inherit-product, device/motorola/jordan/jordan-blobs.mk)
 $(call inherit-product, device/motorola/jordan/bootmenu/bootmenu.mk)
 
-######################################################################################################################################
-
 $(call inherit-product, build/target/product/full_base.mk)
 
 # Should be after the full_base include, which loads languages_full
 PRODUCT_LOCALES += hdpi
 
 PRODUCT_NAME := full_jordan
-PRODUCT_DEVICE := MB526
+PRODUCT_DEVICE := MB525
 

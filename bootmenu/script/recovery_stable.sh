@@ -36,9 +36,8 @@ chmod 755 /res
 cp -r -f /system/bootmenu/recovery/res/* /res/
 cp -p -f /system/bootmenu/recovery/sbin/* /sbin/
 
-if [ ! -f /sbin/recovery_stable ]; then
-    ln -s /sbin/recovery /sbin/recovery_stable
-fi
+# recovery prebuilt
+cp -f /sbin/recovery_stable /sbin/recovery
 
 chmod +rx /sbin/*
 
@@ -57,7 +56,7 @@ touch /cache/recovery/log
 touch /cache/recovery/last_log
 touch /tmp/recovery.log
 
-killall adbd
+killall -6 adbd
 
 # mount fake image of pds, for backup purpose (4MB)
 [ ! -d /data/data ] && mount -t ext3 -o rw,noatime,nodiratime,errors=continue $PART_DATA /data
@@ -83,7 +82,7 @@ if [ ! $ret -eq 0 ]; then
    # /system/bootmenu/script/adbd.sh
 
    # don't use adbd here, will load many android process which locks /system
-   killall adbd
+   killall -6 adbd
 fi
 
 #############################
@@ -111,8 +110,7 @@ echo 0 > /sys/class/leds/blue/brightness
 ln -s /sdcard /mnt/sdcard
 cd /sbin && ln -s adbd adbd.root
 
-/sbin/recovery_stable
-
+/sbin/recovery
 
 # Post Recovery (back to bootmenu)
 

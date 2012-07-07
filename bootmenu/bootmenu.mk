@@ -7,6 +7,9 @@ PRODUCT_PACKAGES += \
 	static_busybox \
 	static_logwrapper \
 	2nd-init.jordan \
+	utility_mke2fs \
+	utility_tune2fs \
+	e2fsck recovery_pigz \
 
 # config
 PRODUCT_COPY_FILES += \
@@ -33,7 +36,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/script/2nd-init.sh:system/bootmenu/script/2nd-init.sh \
 	${bm_device}/bootmenu/script/2nd-boot.sh:system/bootmenu/script/2nd-boot.sh \
-	${bm_device}/bootmenu/script/stock.sh:system/bootmenu/script/stock.sh \
 	${bm_device}/bootmenu/script/adbd.sh:system/bootmenu/script/adbd.sh \
 	${bm_device}/bootmenu/script/bootmode_clean.sh:system/bootmenu/script/bootmode_clean.sh \
 	${bm_device}/bootmenu/script/cdrom.sh:system/bootmenu/script/cdrom.sh \
@@ -46,6 +48,7 @@ PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/script/recovery_stable.sh:system/bootmenu/script/recovery_stable.sh \
 	${bm_device}/bootmenu/script/sdcard.sh:system/bootmenu/script/sdcard.sh \
 	${bm_device}/bootmenu/script/system.sh:system/bootmenu/script/system.sh \
+	${bm_device}/bootmenu/script/pdsbackup.sh:system/bootmenu/script/pdsbackup.sh \
 
 # prebuilt binaries (to clean...)
 PRODUCT_COPY_FILES += \
@@ -56,14 +59,14 @@ PRODUCT_COPY_FILES += \
 
 # images
 PRODUCT_COPY_FILES += \
-	external/bootmenu/images/indeterminate1.png:system/bootmenu/images/indeterminate1.png \
-	external/bootmenu/images/indeterminate2.png:system/bootmenu/images/indeterminate2.png \
+	external/bootmenu/images/indeterminate1.png:system/bootmenu/images/indeterminate.png \
 	external/bootmenu/images/progress_empty.png:system/bootmenu/images/progress_empty.png \
 	external/bootmenu/images/progress_fill.png:system/bootmenu/images/progress_fill.png \
 	${bm_device}/bootmenu/images/background.png:system/bootmenu/images/background.png \
 
 # recovery
 PRODUCT_COPY_FILES += \
+	${bm_device}/bootmenu/recovery/recovery.fstab:system/etc/recovery.fstab \
 	${bm_device}/bootmenu/recovery/res/keys:system/bootmenu/recovery/res/keys \
 	${bm_device}/bootmenu/recovery/res/images/icon_error.png:system/bootmenu/recovery/res/images/icon_error.png \
 	${bm_device}/bootmenu/recovery/res/images/icon_done.png:system/bootmenu/recovery/res/images/icon_done.png \
@@ -78,12 +81,11 @@ PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/recovery/res/images/indeterminate6.png:system/bootmenu/recovery/res/images/indeterminate6.png \
 	${bm_device}/bootmenu/recovery/res/images/progress_empty.png:system/bootmenu/recovery/res/images/progress_empty.png \
 	${bm_device}/bootmenu/recovery/res/images/progress_fill.png:system/bootmenu/recovery/res/images/progress_fill.png \
-	${bm_device}/bootmenu/recovery/res/images/icon_bootmenu.png:system/bootmenu/recovery/res/images/icon_bootmenu.png \
-	${bm_device}/bootmenu/recovery/res/images/icon_bootmenu.png:system/bootmenu/recovery/res/images/icon_clockwork.png \
+	${bm_device}/bootmenu/recovery/res/images/icon_cm.png:system/bootmenu/recovery/res/images/icon_bootmenu.png \
+	${bm_device}/bootmenu/recovery/res/images/icon_cm.png:system/bootmenu/recovery/res/images/icon_clockwork.png \
 	${bm_device}/bootmenu/recovery/sbin/badblocks:system/bootmenu/recovery/sbin/badblocks \
 	${bm_device}/bootmenu/recovery/sbin/dedupe:system/bootmenu/recovery/sbin/dedupe \
 	${bm_device}/bootmenu/recovery/sbin/dump_image:system/bootmenu/recovery/sbin/dump_image \
-	${bm_device}/bootmenu/recovery/sbin/e2fsck:system/bootmenu/recovery/sbin/e2fsck \
 	${bm_device}/bootmenu/recovery/sbin/fix_permissions:system/bootmenu/recovery/sbin/fix_permissions \
 	${bm_device}/bootmenu/recovery/sbin/killrecovery.sh:system/bootmenu/recovery/sbin/killrecovery.sh \
 	${bm_device}/bootmenu/recovery/sbin/nandroid-md5.sh:system/bootmenu/recovery/sbin/nandroid-md5.sh \
@@ -94,11 +96,13 @@ PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/recovery/sbin/resize2fs:system/bootmenu/recovery/sbin/resize2fs \
 	${bm_device}/bootmenu/recovery/sbin/sdparted:system/bootmenu/recovery/sbin/sdparted \
 	${bm_device}/bootmenu/recovery/sbin/mke2fs:system/bootmenu/recovery/sbin/mke2fs \
-	${bm_device}/bootmenu/recovery/sbin/mke2fs.bin:system/bootmenu/recovery/sbin/mke2fs.bin \
-	${bm_device}/bootmenu/recovery/sbin/tune2fs.bin:system/bootmenu/recovery/sbin/tune2fs \
 	${bm_device}/bootmenu/recovery/recovery.fstab:system/bootmenu/recovery/recovery.fstab \
 
 # recovery tools
 PRODUCT_COPY_FILES += \
-	out/target/product/jordan/recovery/root/sbin/tune2fs:system/bootmenu/recovery/sbin/tune2fs
+	out/target/product/jordan/recovery/root/sbin/tune2fs:system/bootmenu/recovery/sbin/tune2fs \
+	out/target/product/jordan/recovery/root/sbin/e2fsck:system/bootmenu/recovery/sbin/e2fsck \
+	out/target/product/jordan/recovery/root/sbin/tune2fs:system/bootmenu/recovery/sbin/tune2fs \
+	out/target/product/jordan/recovery/root/sbin/mke2fs:system/bootmenu/recovery/sbin/mke2fs.bin \
+	out/target/product/jordan/recovery/root/sbin/pigz:system/bootmenu/recovery/sbin/pigz \
 

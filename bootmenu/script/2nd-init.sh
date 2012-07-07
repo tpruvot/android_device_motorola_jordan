@@ -13,6 +13,7 @@ rm -f /*.sh
 rm -f /osh
 rm -rf /preinstall
 cp -f /system/bootmenu/2nd-init/* /
+rm -f /sbin/ueventd
 ln -s /init /sbin/ueventd
 cp -f /system/bootmenu/binary/adbd /sbin/adbd
 killall ueventd
@@ -20,18 +21,11 @@ killall ueventd
 ADBD_RUNNING=`ps | grep adbd | grep -v grep`
 if [ -z "$ADB_RUNNING" ]; then
     rm -f /tmp/usbd_current_state
-    #delete if is a symlink
-    [ -L "/tmp" ] && rm -f /tmp
-    mkdir -p /tmp
-else
-    # well, not beautiful but do the work
-    # to keep current usbd state
-    if [ -L "/tmp" ]; then
-        mv /tmp/usbd_current_state / 2>/dev/null
-        rm -f /tmp
-        mkdir -p /tmp
-        mv /usbd_current_state /tmp/ 2>/dev/null
-    fi
+fi
+
+# original /tmp data symlink
+if [ -L /tmp.bak ]; then
+  rm /tmp.bak
 fi
 
 if [ -L /sdcard-ext ]; then
