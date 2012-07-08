@@ -23,7 +23,7 @@
 
 # Inherit from those products. Most specific first.
 $(call inherit-product, device/motorola/jordan/jordan.mk)
-$(call inherit-product, vendor/motorola/jordan_plus/jordan-vendor.mk)
+$(call inherit-product, vendor/motorola/jordan/jordan-vendor.mk)
 # recovery tools
 PRODUCT_COPY_FILES += \
 	out/target/product/jordan/recovery/root/sbin/tune2fs:system/bootmenu/recovery/sbin/tune2fs \
