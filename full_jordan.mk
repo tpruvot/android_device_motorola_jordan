@@ -32,6 +32,11 @@ PRODUCT_COPY_FILES += \
 	out/target/product/jordan/recovery/root/sbin/mke2fs:system/bootmenu/recovery/sbin/mke2fs.bin \
 	out/target/product/jordan/recovery/root/sbin/pigz:system/bootmenu/recovery/sbin/pigz \
 
+# copy all vendor (motorola) kernel modules to system/lib/modules
+PRODUCT_COPY_FILES += $(shell test -d vendor/motorola/jordan/lib/modules &&  \
+	find vendor/motorola/jordan/lib/modules -name '*.ko' \
+	-printf '%p:system/lib/modules/%f ')
+
 PRODUCT_NAME := full_jordan
 PRODUCT_DEVICE := jordan
 PRODUCT_BRAND := Android
