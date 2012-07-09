@@ -32,8 +32,6 @@
 #define USAGE_BUF \
     (GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_HW_TEXTURE)
 
-#define HAL_PIXEL_FORMAT HAL_PIXEL_FORMAT_YV12 /* was HAL_PIXEL_FORMAT_RGB_565 */
-
 #ifdef LOG_EACH_FRAME
 # define LOGVF(...) LOGV(__VA_ARGS__)
 #else
@@ -162,41 +160,6 @@ static void Yuv422iToRgb565(char* rgb, char* yuv422i, int width, int height, int
     }
 }
 
-/* from v4l lib */
-static void Yuv422iToYV12 (unsigned char* dest, unsigned char* src, int width, int height, int stride) 
-{
-    int i, j;
-    unsigned char *src1;
-    unsigned char *udest, *vdest;
-
-    /* copy the Y values */
-    src1 = src;
-    for (i = 0; i < height; i++) {
-        for (j = 0; j < width; j += 2) {
-            *dest++ = src1[0];
-            *dest++ = src1[2];
-            src1 += 4;
-        }
-    }
-
-    /* copy the U and V values */
-    src1 = src + width * 2; /* next line */
-
-    vdest = dest;
-    udest = dest + width * height / 4;
-
-    for (i = 0; i < height; i += 2) {
-        for (j = 0; j < width; j += 2) {
-            *udest++ = ((int) src[1] + src1[1]) / 2; /* U */
-            *vdest++ = ((int) src[3] + src1[3]) / 2; /* V */
-            src += 4;
-            src1 += 4;
-        }
-        src = src1;
-        src1 += width * 2;
-    }
-}
-
 static void processPreviewData(char *frame, size_t size, legacy_camera_device *lcdev, Overlay::Format format)
 {
     LOGVF("%s: frame=%p, size=%d, lcdev=%p", __FUNCTION__, frame, size, lcdev);
@@ -241,17 +204,7 @@ static void processPreviewData(char *frame, size_t size, legacy_camera_device *l
     if (ret) {
         LOGE("%s: could not lock gralloc buffer", __FUNCTION__);
     } else {
-#if 1
-        switch (format) {
-            case Overlay::FORMAT_YUV422I:
-                Yuv422iToYV12((unsigned char*)vaddr, (unsigned char*)frame, lcdev->previewWidth, lcdev->previewHeight, stride);
-                break;
-             case Overlay::FORMAT_YUV420P:
-             case Overlay::FORMAT_YUV420SP:
-                memcpy(vaddr, frame, lcdev->previewWidth * lcdev->previewHeight * 1.5);
-                break;
-#else
-        // Compat, if the data we get is in YUV and Window is RGB565
+        // The data we get is in YUV... but Window is RGB565. It needs to be converted
         switch (format) {
             case Overlay::FORMAT_YUV422I:
                 Yuv422iToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
@@ -263,7 +216,6 @@ static void processPreviewData(char *frame, size_t size, legacy_camera_device *l
             case Overlay::FORMAT_RGB565:
                 memcpy(vaddr, frame, size);
                 break;
-#endif
             default:
                 LOGE("%s: Unknown video format, cannot convert!", __FUNCTION__);
         }
@@ -460,7 +412,7 @@ static int camera_set_preview_window(struct camera_device * device, struct previ
         return -1;
     }
 
-    if (window->set_buffers_geometry(window, lcdev->previewWidth, lcdev->previewHeight, HAL_PIXEL_FORMAT)) {
+    if (window->set_buffers_geometry(window, lcdev->previewWidth, lcdev->previewHeight, HAL_PIXEL_FORMAT_RGB_565)) {
         LOGE("%s: could not set buffers geometry (%dx%d)", __FUNCTION__, lcdev->previewWidth, lcdev->previewHeight);
         return -1;
     }
