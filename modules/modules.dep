@@ -8,6 +8,9 @@ logcap.ko: symsearch.ko
 multitouch.ko: symsearch.ko
 proximity.ko: symsearch.ko
 ionpvr.ko: symsearch.ko
+pvroff.ko: symsearch.ko
+pvrsrvkm.ko:
+omaplfb.ko: pvrsrvkm.ko
 ion.ko: symsearch.ko ionpvr.ko
 klogger.ko:
 thumbee.ko:
