@@ -24,10 +24,10 @@ mkdir -p $REPACK/ota/system/etc/terminfo/x
 cp $REPACK/ota/system/etc/terminfo/l/linux $REPACK/ota/system/etc/terminfo/x/xterm
 
 # prebuilt boot, devtree, logo & updater-script
-
 rm -f $REPACK/ota/boot.img
 
 cp -f $DEVICE_COMMON/updater-script $REPACK/ota/META-INF/com/google/android/updater-script
+cp -f $DEVICE_TOP/overclock.conf $REPACK/ota/system/bootmenu/config/overclock.conf
 
 # Opensource init binary
 cp -f $DEVICE_OUT/root/init $REPACK/ota/system/bootmenu/2nd-init/init
