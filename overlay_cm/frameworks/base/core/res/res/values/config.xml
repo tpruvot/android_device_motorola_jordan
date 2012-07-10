@@ -18,11 +18,14 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-
 <!-- whether Softap rely on a different interface (beware these flags can be badly understood) -->
 <bool name="config_wifi_ap_use_single_interface">true</bool>
 
 <!-- Dont reload the firmware via the framework, let wifi legacy and tiap_loader do that -->
 <bool name="config_wifi_ap_firmware_reload">false</bool>
+
+<!-- Timeout in MS for how long you have to long-press the back key to
+     kill the foreground app. -->
+<integer name="config_backKillTimeout">1750</integer>
 
 </resources>
