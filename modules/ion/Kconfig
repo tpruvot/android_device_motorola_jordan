@@ -1,6 +1,0 @@
-config OMAP3_ION
-        tristate "ION Kernel Module"
-        default m
-        depends on SYMSEARCH
-        depends on ION_OMAP
-
