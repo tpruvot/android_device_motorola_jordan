@@ -18,10 +18,20 @@ obj-m += thumbee/
 
 # mb525/mb526 specific
 obj-m += proximity/
+
+# SGX ###############################
+
+# force some config for the defy
+CONFIG_SGX_REV125 ?= y
+CONFIG_SGX_530_BUILD_RELEASE ?= y
+CONFIG_ION_OMAP ?= y
+# CONFIG_DSSCOMP ?= y
+
 obj-m += omap3/gpu/pvr/
 
+#####################################
+
 # experimental
-# obj-m += ion/ ionpvr/
 obj-m += camera_misc/
 
 PWD := $(shell pwd)

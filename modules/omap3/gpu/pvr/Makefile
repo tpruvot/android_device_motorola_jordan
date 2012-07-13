@@ -1,7 +1,11 @@
-# force some config for the defy
+
+# OMAP3630 specific (defy)
 
 CONFIG_SGX_REV125 ?= y
 CONFIG_SGX_530_BUILD_RELEASE ?= y
+CONFIG_ION_OMAP ?= y
+# CONFIG_DSSCOMP ?= y
+
 
 ccflags-y = -DLINUX -D__linux__ -Idrivers/gpu/pvr \
 	-DANDROID \
@@ -169,5 +173,4 @@ obj-$(CONFIG_VIRTUAL_DISPLAY_SUPPORT) := pvr_common.o sgx.o \
 	sgx_displayclass.o pvr540.o
 obj-$(CONFIG_SGX_PDUMP) += dbgdrv.o
 
-obj-y			+= pvr.off/
-
+obj-y += pvr.off/

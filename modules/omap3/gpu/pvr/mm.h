@@ -73,22 +73,23 @@
 static inline IMG_UINT32 VMallocToPhys(IMG_VOID *pCpuVAddr)
 {
 	return (page_to_phys(vmalloc_to_page(pCpuVAddr)) + ADDR_TO_PAGE_OFFSET(pCpuVAddr));
-		
 }
+
+// ??? look like defined to something...
+#undef LINUX_MEM_AREA_ION
 
 typedef enum {
     LINUX_MEM_AREA_IOREMAP,
-	LINUX_MEM_AREA_EXTERNAL_KV,
+    LINUX_MEM_AREA_EXTERNAL_KV,
     LINUX_MEM_AREA_IO,
     LINUX_MEM_AREA_VMALLOC,
     LINUX_MEM_AREA_ALLOC_PAGES,
     LINUX_MEM_AREA_SUB_ALLOC,
     LINUX_MEM_AREA_TYPE_COUNT,
     LINUX_MEM_AREA_ION,
-}LINUX_MEM_AREA_TYPE;
+} LINUX_MEM_AREA_TYPE;
 
 typedef struct _LinuxMemArea LinuxMemArea;
-
 
 struct _LinuxMemArea {
     LINUX_MEM_AREA_TYPE eAreaType;
@@ -96,64 +97,54 @@ struct _LinuxMemArea {
     {
         struct _sIORemap
         {
-            
             IMG_CPU_PHYADDR CPUPhysAddr;
             IMG_VOID *pvIORemapCookie;
         }sIORemap;
         struct _sExternalKV
         {
-            
-	    IMG_BOOL bPhysContig;
-	    union {
-		    
-		    IMG_SYS_PHYADDR SysPhysAddr;
-		    IMG_SYS_PHYADDR *pSysPhysAddr;
-	    } uPhysAddr;
+            IMG_BOOL bPhysContig;
+            union {
+                IMG_SYS_PHYADDR SysPhysAddr;
+                IMG_SYS_PHYADDR *pSysPhysAddr;
+            } uPhysAddr;
             IMG_VOID *pvExternalKV;
         }sExternalKV;
         struct _sIO
         {
-            
             IMG_CPU_PHYADDR CPUPhysAddr;
         }sIO;
         struct _sVmalloc
         {
-            
             IMG_VOID *pvVmallocAddress;
         }sVmalloc;
         struct _sPageList
         {
-            
             struct page **pvPageList;
-	    IMG_HANDLE hBlockPageList;
+            IMG_HANDLE hBlockPageList;
         }sPageList;
         struct _sIONTilerAlloc
         {
-            
             IMG_CPU_PHYADDR *pCPUPhysAddrs;
             struct ion_handle *psIONHandle;
         }sIONTilerAlloc;
         struct _sSubAlloc
         {
-            
             LinuxMemArea *psParentLinuxMemArea;
             IMG_UINT32 ui32ByteOffset;
         }sSubAlloc;
     }uData;
 
-    IMG_UINT32 ui32ByteSize;		
+    IMG_UINT32 ui32ByteSize;
 
-    IMG_UINT32 ui32AreaFlags;		
+    IMG_UINT32 ui32AreaFlags;
 
-    IMG_BOOL bMMapRegistered;		
+    IMG_BOOL bMMapRegistered;
 
-    IMG_BOOL bNeedsCacheInvalidate;	
+    IMG_BOOL bNeedsCacheInvalidate;
 
-    
-    struct list_head	sMMapItem;
+    struct list_head sMMapItem;
 
-    
-    struct list_head	sMMapOffsetStructList;
+    struct list_head sMMapOffsetStructList;
 };
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,17))
