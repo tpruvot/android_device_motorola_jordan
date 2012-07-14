@@ -325,7 +325,9 @@ PVRSRV_ERROR SysInitialise(IMG_VOID)
 	IMG_UINT32			i;
 	PVRSRV_ERROR		eError;
 	PVRSRV_DEVICE_NODE	*psDeviceNode;
+#if defined(PVR_OMAP_TIMER_BASE_IN_SYS_SPEC_DATA)
 	IMG_CPU_PHYADDR		TimerRegPhysBase;
+#endif
 #if !defined(SGX_DYNAMIC_TIMING_INFO)
 	SGX_TIMING_INFORMATION*	psTimingInfo;
 #endif

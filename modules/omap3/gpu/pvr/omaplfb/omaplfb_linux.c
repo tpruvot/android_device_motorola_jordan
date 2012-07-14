@@ -1047,3 +1047,26 @@ static void __exit OMAPLFB_Cleanup(void)
 late_initcall(OMAPLFB_Init);
 module_exit(OMAPLFB_Cleanup);
 #endif
+
+
+#include <linux/stringify.h>
+#include "sgxdefs.h"
+
+MODULE_DESCRIPTION(DISPLAY_DEVICE_NAME);
+MODULE_DESCRIPTION(SGX_CORE_FRIENDLY_NAME " " PVR_BUILD_TYPE " v" __stringify(SGX_CORE_REV));
+
+#ifdef CONFIG_DSSCOMP
+MODULE_DESCRIPTION("with DSSCOMP");
+#endif
+#ifdef CONFIG_ION_OMAP
+MODULE_DESCRIPTION("with ION");
+#endif
+#ifdef SUPPORT_DRI_DRM
+MODULE_DESCRIPTION("with DRI DRM");
+#endif
+#ifdef PVR_OMAPLFB_DRM_FB
+MODULE_DESCRIPTION("with DRM FB");
+#endif
+
+MODULE_VERSION("1.0.0");
+
