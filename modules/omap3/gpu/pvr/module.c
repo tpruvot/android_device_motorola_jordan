@@ -30,7 +30,14 @@
 #ifndef AUTOCONF_INCLUDED
 #include <linux/config.h>
 #endif
-#endif
+
+#include <linux/err.h>
+static inline long __must_check IS_ERR_OR_NULL(const void *ptr)
+{
+	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
+}
+
+#endif /* < 2.6.38 */
 
 #if defined(SUPPORT_DRI_DRM) && !defined(SUPPORT_DRI_DRM_PLUGIN)
 #define	PVR_MOD_STATIC

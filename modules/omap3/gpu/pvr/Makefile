@@ -3,7 +3,7 @@
 
 CONFIG_SGX_REV125 ?= y
 CONFIG_SGX_530_BUILD_RELEASE ?= y
-CONFIG_ION_OMAP ?= y
+# CONFIG_ION_OMAP ?= y
 # CONFIG_DSSCOMP ?= y
 
 
@@ -91,6 +91,10 @@ ccflags-$(CONFIG_SGX_540_BUILD_DEBUG) += \
 ccflags-$(CONFIG_SGX_PDUMP) += -Idrivers/gpu/pvr/dbgdrv \
 	-DPDUMP \
 	-DSUPPORT_DBGDRV_EVENT_OBJECTS
+
+ifneq ($(CONFIG_ION_OMAP),)
+    ccflags-y += -DCONFIG_ION_OMAP
+endif
 
 pvr_common-y := \
 	osfunc.o \
