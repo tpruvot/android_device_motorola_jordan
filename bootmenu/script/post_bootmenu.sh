@@ -39,9 +39,7 @@ if [ -d /system/bootmenu/init.d ]; then
 fi
 
 # reset any root perms for hwa settings
-chown -R system.nobody /data/local/hwui.allow
 chown -R system.nobody /data/local/hwui.deny
-chmod +rw /data/local/hwui.allow/*
 chmod +rw /data/local/hwui.deny/*
 
 # adb shell
