@@ -28,7 +28,7 @@ PRODUCT_MANUFACTURER := Motorola
 PRODUCT_SFX := DFP
 
 # Release name and versioning
-    PRODUCT_RELEASE_NAME := Defy
+PRODUCT_RELEASE_NAME := Defy
 
 UTC_DATE := $(shell date +%s)
 DATE     := $(shell date +%Y%m%d)
