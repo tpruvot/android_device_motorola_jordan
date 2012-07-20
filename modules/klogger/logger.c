@@ -24,6 +24,8 @@
 #include <linux/poll.h>
 #include <linux/time.h>
 #include <linux/console.h>
+#include <linux/slab.h>
+
 #include "logger.h"
 
 #include <asm/ioctls.h>
@@ -588,11 +590,11 @@ static void klogger_kernel_write(struct console *co, const char *s, unsigned cou
 	struct logger_log *log= &log_kernel;
 	unsigned int msg_len;
 	int prio=3;
-	struct iovec vec[3];
+	struct iovec vec[4];
 	struct iovec *iov;
 	int vec_count=3;
-	ssize_t ret = 0;
-	const char tag[7] ="kernel\0";
+	ssize_t ret = 1;
+	const char tag[7] = "kernel\0";
 	iov=&vec[0];
 
 #ifdef RESIZE_LOG
@@ -624,17 +626,19 @@ static void klogger_kernel_write(struct console *co, const char *s, unsigned cou
 	vec[1].iov_len = strlen(tag) + 1;
 	vec[2].iov_base = (void *)s;
 	vec[2].iov_len  = count;
-	msg_len= vec[0].iov_len+vec[1].iov_len+vec[2].iov_len;
+	vec[3].iov_base = NULL;
+	vec[3].iov_len  = 0;
+
 	now = current_kernel_time();
 
 	header.pid = 0;
 	header.tid = 0;
 	header.sec = now.tv_sec;
 	header.nsec= now.tv_nsec;
-	header.len = min_t(size_t, msg_len, LOGGER_ENTRY_MAX_PAYLOAD);
 
+	msg_len = vec[0].iov_len + vec[1].iov_len + vec[2].iov_len;
+	header.len = min_t(size_t, msg_len, LOGGER_ENTRY_MAX_PAYLOAD - 1);
 	do_write_log(log, &header, sizeof(struct logger_entry));
-
 	fix_up_readers(log, sizeof(struct logger_entry) + header.len);
 
 	while (vec_count-- > 0) {
@@ -759,5 +763,5 @@ module_exit(klogger_exit);
 MODULE_ALIAS(TAG);
 MODULE_DESCRIPTION("Enhanced adb logger");
 MODULE_AUTHOR("Tanguy Pruvot, CyanogenDefy");
-MODULE_VERSION("2.2");
+MODULE_VERSION("2.3");
 MODULE_LICENSE("GPL");
