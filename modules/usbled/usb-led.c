@@ -17,7 +17,9 @@
  */
 
 #include <linux/leds.h>
+#ifndef DEFYPLUS
 #include <linux/leds-ld-cpcap.h>
+#endif
 #include <linux/platform_device.h>
 #include <linux/spi/cpcap.h>
 #include <linux/spi/cpcap-regbits.h>

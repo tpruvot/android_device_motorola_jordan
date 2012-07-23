@@ -48,7 +48,7 @@ clean:
 	@cd $(PWD) && git checkout *.ko
 
 
-EXTRA_CFLAGS += -I$(KERNEL_DIR) -DUTS_RELEASE=\\\"2.6.32.9\\\"
+EXTRA_CFLAGS += -I$(KERNEL_DIR) -DUTS_RELEASE=\\\"2.6.32.9\\\" -DDEFYPLUS
 
 .PHONY: all
 #######################################################################################

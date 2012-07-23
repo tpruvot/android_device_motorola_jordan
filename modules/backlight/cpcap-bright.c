@@ -25,7 +25,7 @@
 #define CPCAP_BUTTON_DEV       "button-backlight"
 #define CPCAP_BUTTON_BACKLIGHT CPCAP_REG_ADLC
 
-#define DEFYPLUS
+//#define DEFYPLUS
 
 //Only in Defy froyo kernel, not in Defy+
 #ifndef DEFYPLUS
