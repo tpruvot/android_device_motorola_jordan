@@ -104,7 +104,7 @@ PRODUCT_PACKAGES += libfnc DefyParts Usb HwaSettings
 PRODUCT_PACKAGES += charge_only_mode mot_boot_mode lights.jordan sensors.jordan
 
 # Publish that we support the live wallpaper feature.
-PRODUCT_PACKAGES += LiveWallpapers LiveWallpapersPicker MagicSmokeWallpapers 
+PRODUCT_PACKAGES += LiveWallpapers LiveWallpapersPicker MagicSmokeWallpapers MotoFM
 PRODUCT_PACKAGES += VisualizationWallpapers librs_jni
 
 # Add DroidSSHd (dropbear) Management App - tpruvot/android_external_droidsshd @ github
