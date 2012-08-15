@@ -160,6 +160,45 @@ static void Yuv422iToRgb565(char* rgb, char* yuv422i, int width, int height, int
     }
 }
 
+static void Yuv422iToYV12(unsigned char* dest, unsigned char* src, int width, int height, int stride) 
+{
+    int i, j;
+    int paddingY = stride - width;
+    int paddingC = paddingY / 2;
+    unsigned char *src1;
+    unsigned char *udest, *vdest;
+
+    /* copy the Y values */
+    src1 = src;
+    for (i = 0; i < height; i++) {
+        for (j = 0; j < width; j += 2) {
+            *dest++ = src1[0];
+            *dest++ = src1[2];
+            src1 += 4;
+        }
+        dest += paddingY;
+    }
+
+    /* copy the U and V values */
+    src1 = src + width * 2;		/* next line */
+
+    vdest = dest;
+    udest = dest + stride * height / 4;
+
+    for (i = 0; i < height; i += 2) {
+        for (j = 0; j < width; j += 2) {
+            *udest++ = ((int) src[1] + src1[1]) / 2;	/* U */
+            *vdest++ = ((int) src[3] + src1[3]) / 2;	/* V */
+            src += 4;
+            src1 += 4;
+        }
+        src = src1;
+        src1 += width * 2;
+        udest += paddingC;
+        vdest += paddingC;
+    }
+}
+
 static void processPreviewData(char *frame, size_t size, legacy_camera_device *lcdev, Overlay::Format format)
 {
     LOGVF("%s: frame=%p, size=%d, lcdev=%p", __FUNCTION__, frame, size, lcdev);
@@ -301,7 +340,9 @@ static void dataTimestampCallback(nsecs_t timestamp, int32_t msgType,
         if (mem != NULL) {
             LOGV("%s: Posting data to client timestamp:%lld", __FUNCTION__,
                   systemTime());
+            Mutex::Autolock lock(mSentFramesLock);
             lcdev->sentFrames.push_back(mem);
+            mSentFramesLock.unlock();
             lcdev->data_timestamp_callback(timestamp, msgType, mem, /*index*/0, lcdev->user);
             lcdev->hwif->releaseRecordingFrame(dataPtr);
         } else {
@@ -334,8 +375,12 @@ inline void destroyOverlay(legacy_camera_device *lcdev)
 static void releaseCameraFrames(legacy_camera_device *lcdev)
 {
     vector<camera_memory_t*>::iterator it;
-    for (it = lcdev->sentFrames.begin(); it != lcdev->sentFrames.end(); ++it) {
-        (*it)->release(*it);
+    Mutex::Autolock lock(mSentFramesLock);
+    LOGV("%s: sentFrames.size %d",  __FUNCTION__, lcdev->sentFrames.size());
+    for (it = lcdev->sentFrames.begin(); it < lcdev->sentFrames.end(); ++it) {
+        camera_memory_t *mem = *it;
+        LOGV("%s: releasing mem->data:%p", __FUNCTION__, mem->data);
+        mem->release(mem);
     }
     lcdev->sentFrames.clear();
 }
@@ -505,7 +550,7 @@ static int camera_preview_enabled(struct camera_device * device)
 
 static int camera_store_meta_data_in_buffers(struct camera_device * device, int enable)
 {
-    LOGW("%s", __FUNCTION__);
+    LOGV("%s: %d\n", __FUNCTION__, enable);
     return INVALID_OPERATION;
 }
 
@@ -537,6 +582,7 @@ static void camera_release_recording_frame(struct camera_device * device, const 
     struct legacy_camera_device *lcdev = to_lcdev(device);
     if (opaque != NULL) {
         vector<camera_memory_t*>::iterator it;
+        Mutex::Autolock lock(mSentFramesLock);
         for (it = lcdev->sentFrames.begin(); it != lcdev->sentFrames.end(); ++it) {
             camera_memory_t *mem = *it;
             if (mem->data == opaque) {
