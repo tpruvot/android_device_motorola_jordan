@@ -70,7 +70,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
             kinetoPref.setChecked(setting == PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
         } catch (IllegalArgumentException e) {
             /* kineto not installed for whatever reason */
-            kinetoPref.setEnabled(false);
+            getPreferenceScreen().removePreference(kinetoPref);
         }
     }
 
