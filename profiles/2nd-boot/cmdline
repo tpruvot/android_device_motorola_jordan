@@ -1,0 +1,1 @@
+console=/dev/null mem=498M init=/init ip=off brdrev=P3A omapfb.vram=0:4M

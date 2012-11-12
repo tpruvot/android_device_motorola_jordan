@@ -1,8 +1,7 @@
 #!/sbin/sh
 
 ######## BootMenu Script
-######## Execute [Normal] Boot (disabled in cm7)
-
+######## Execute [Direct] Boot (for 2ndboot bootmenu)
 
 export PATH=/sbin:/system/xbin:/system/bin
 

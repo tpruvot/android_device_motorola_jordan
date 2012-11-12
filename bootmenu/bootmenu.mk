@@ -10,6 +10,7 @@ PRODUCT_PACKAGES += \
 	utility_mke2fs \
 	utility_tune2fs \
 	e2fsck recovery_pigz \
+	hbootuser \
 
 # config
 PRODUCT_COPY_FILES += \
@@ -24,18 +25,31 @@ PRODUCT_COPY_FILES += \
 	${bm_device}/profiles/2nd-init/init.rc:system/bootmenu/2nd-init/init.rc \
 	${bm_device}/profiles/2nd-init/init.mapphone_umts.rc:system/bootmenu/2nd-init/init.mapphone_umts.rc \
 	${bm_device}/profiles/2nd-init/ueventd.rc:system/bootmenu/2nd-init/ueventd.rc \
-	${bm_device}/profiles/backup/init.rc:system/bootmenu/2nd-boot/init.rc \
-	${bm_device}/profiles/backup/init.mapphone_umts.rc:system/bootmenu/2nd-boot/init.mapphone_umts.rc \
-	${bm_device}/profiles/backup/ueventd.rc:system/bootmenu/2nd-boot/ueventd.rc \
-	${bm_device}/profiles/backup/init:system/bootmenu/2nd-boot/init \
-	${bm_device}/profiles/backup/sbin/ueventd:system/bootmenu/2nd-boot/sbin/ueventd \
 	${bm_device}/profiles/moto/froyo/init.rc:system/bootmenu/moto/froyo/init.rc \
 	${bm_device}/profiles/moto/froyo/init.mapphone_umts.rc:system/bootmenu/moto/froyo/init.mapphone_umts.rc \
+
+# 2nd-boot kernel loader
+PRODUCT_COPY_FILES += \
+	${bm_device}/profiles/2nd-boot/hbootmod.ko:system/bootmenu/2nd-boot/hbootmod.ko \
+	${bm_device}/profiles/2nd-boot/hboot.bin:system/bootmenu/2nd-boot/hboot.bin \
+	${bm_device}/profiles/2nd-boot/hboot.cfg:system/bootmenu/2nd-boot/hboot.cfg \
+	${bm_device}/profiles/2nd-boot/cmdline:system/bootmenu/2nd-boot/cmdline \
+	${bm_device}/profiles/2nd-boot/devtree:system/bootmenu/2nd-boot/devtree \
+	${bm_device}/profiles/2nd-boot/ramdisk:system/bootmenu/2nd-boot/ramdisk \
+	${bm_device}/profiles/2nd-boot/zImage:system/bootmenu/2nd-boot/zImage \
+
+# Ramdisk (mkbootfs tool is required to create profiles/2nd-boot/ramdisk image)
+PRODUCT_COPY_FILES += \
+	${bm_device}/profiles/ramdisk/ueventd.rc:root/ueventd.rc \
+	${bm_device}/profiles/ramdisk/init.usb.rc:root/init.usb.rc \
+	${bm_device}/profiles/ramdisk/init.mapphone_umts.rc:root/init.mapphone_umts.rc \
+	${bm_device}/bootmenu/binary/adbd:root/sbin/adbd \
 
 # scripts
 PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/script/2nd-init.sh:system/bootmenu/script/2nd-init.sh \
 	${bm_device}/bootmenu/script/2nd-boot.sh:system/bootmenu/script/2nd-boot.sh \
+	${bm_device}/bootmenu/script/2nd-boot-uart.sh:system/bootmenu/script/2nd-boot-uart.sh \
 	${bm_device}/bootmenu/script/adbd.sh:system/bootmenu/script/adbd.sh \
 	${bm_device}/bootmenu/script/bootmode_clean.sh:system/bootmenu/script/bootmode_clean.sh \
 	${bm_device}/bootmenu/script/cdrom.sh:system/bootmenu/script/cdrom.sh \
@@ -47,6 +61,7 @@ PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/script/recovery.sh:system/bootmenu/script/recovery.sh \
 	${bm_device}/bootmenu/script/recovery_stable.sh:system/bootmenu/script/recovery_stable.sh \
 	${bm_device}/bootmenu/script/sdcard.sh:system/bootmenu/script/sdcard.sh \
+	${bm_device}/bootmenu/script/stock.sh:system/bootmenu/script/stock.sh \
 	${bm_device}/bootmenu/script/system.sh:system/bootmenu/script/system.sh \
 	${bm_device}/bootmenu/script/pdsbackup.sh:system/bootmenu/script/pdsbackup.sh \
 	${bm_device}/bootmenu/script/format_ext3.sh:system/bootmenu/script/format_ext3.sh \
@@ -58,7 +73,6 @@ PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/binary/adbd:system/bootmenu/binary/adbd \
 	${bm_device}/bootmenu/binary/logwrapper.bin:system/bootmenu/binary/logwrapper.bin \
 	${bm_device}/bootmenu/binary/logwrapper.bin:system/bin/logwrapper.bin \
-	${bm_device}/bootmenu/binary/2nd-boot:system/bootmenu/binary/2nd-boot \
 
 # images
 PRODUCT_COPY_FILES += \
