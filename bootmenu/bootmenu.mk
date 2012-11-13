@@ -35,15 +35,8 @@ PRODUCT_COPY_FILES += \
 	${bm_device}/profiles/2nd-boot/hboot.cfg:system/bootmenu/2nd-boot/hboot.cfg \
 	${bm_device}/profiles/2nd-boot/cmdline:system/bootmenu/2nd-boot/cmdline \
 	${bm_device}/profiles/2nd-boot/devtree:system/bootmenu/2nd-boot/devtree \
-	${bm_device}/profiles/2nd-boot/ramdisk:system/bootmenu/2nd-boot/ramdisk \
+	${bm_device}/profiles/2nd-boot/ramdisk.gz:system/bootmenu/2nd-boot/ramdisk.gz \
 	${bm_device}/profiles/2nd-boot/zImage:system/bootmenu/2nd-boot/zImage \
-
-# Ramdisk (mkbootfs tool is required to create profiles/2nd-boot/ramdisk image)
-PRODUCT_COPY_FILES += \
-	${bm_device}/profiles/ramdisk/ueventd.rc:root/ueventd.rc \
-	${bm_device}/profiles/ramdisk/init.usb.rc:root/init.usb.rc \
-	${bm_device}/profiles/ramdisk/init.mapphone_umts.rc:root/init.mapphone_umts.rc \
-	${bm_device}/bootmenu/binary/adbd:root/sbin/adbd \
 
 # scripts
 PRODUCT_COPY_FILES += \
