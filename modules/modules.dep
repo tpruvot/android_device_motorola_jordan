@@ -34,7 +34,7 @@ ifb.ko:
 em_u32.ko:
 dummy.ko:
 cls_u32.ko:
-cifs.ko: nls_utf8.ko
+cifs-stock.ko: nls_utf8.ko
 ext4.ko: jbd2.ko
 jbd2.ko:
 act_police.ko:
