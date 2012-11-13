@@ -1,5 +1,9 @@
 on init 
 
+    write /sys/class/leds/red/brightness 1
+
+loglevel 9
+
     # change order or library location search
     export LD_LIBRARY_PATH /system/lib
     export DSP_PATH /system/lib/dsp
@@ -9,16 +13,28 @@ on init
     mkdir /mnt/sdcard  0700 root root
     symlink /mnt/sdcard /sdcard
 
-    #Adb at boot
-    #write /dev/usb_device_mode charge_adb
-    #write /tmp/usbd_current_state usb_mode_charge_adb
-    #chmod 0666 /tmp/usbd_current_state
-    #start adbd
+    # Adb at boot
+    write /dev/usb_device_mode charge_adb
+    write /tmp/usbd_current_state usb_mode_charge_adb
+    chmod 0666 /tmp/usbd_current_state
+    start adbd
+
+on fs
+
+# Mount mmc partitions
+    mkdir /pds 0775 system system
+    mount ext3 /dev/block/mmcblk1p21 /system
+    mount ext3 /dev/block/mmcblk1p21 /system ro remount
+    mount ext3 /dev/block/mmcblk1p24 /cache nosuid nodev noatime nodiratime barrier=0
+    mount ext3 /dev/block/mmcblk1p25 /data nosuid nodev noatime nodiratime barrier=0
+
+#    mount ext4 /dev/block/mmcblk1p24 /cache noatime noauto_da_alloc nosuid nodev nodiratime barrier=0 nobh
+#    mount ext4 /dev/block/mmcblk1p25 /data noatime noauto_da_alloc nosuid nodev nodiratime barrier=0 nobh
 
 
 on post-fs
 
-    write /sys/class/leds/red/brightness 1
+    write /sys/class/leds/blue/brightness 1
 
     symlink mmcblk1p21 /dev/block/system
     symlink mmcblk1p24 /dev/block/cache
@@ -33,28 +49,15 @@ on post-fs
     # Overclock after 2ndboot.
     # exec /sbin/sh /system/bootmenu/script/overclock.sh
 
-on fs
-
-# Mount mmc partitions
-    mkdir /pds 0775 system system
-    mount ext3 /dev/block/mmcblk1p21 /system
-    mount ext3 /dev/block/mmcblk1p21 /system ro remount
-    mount ext3 /dev/block/mmcblk1p24 /cache nosuid nodev noatime nodiratime barrier=0
-    mount ext3 /dev/block/mmcblk1p25 /data nosuid nodev noatime nodiratime barrier=0
-
-    mount ext4 /dev/block/mmcblk1p24 /cache noatime noauto_da_alloc nosuid nodev nodiratime barrier=0 nobh
-    mount ext4 /dev/block/mmcblk1p25 /data noatime noauto_da_alloc nosuid nodev nodiratime barrier=0 nobh
-
-on post-fs
-
-    write /sys/class/leds/blue/brightness 1
-
 # Backward compatibility
     symlink /dev /dev/netmux
     symlink /dev/ttyGS0 /dev/acm0
     symlink /dev/hp3a-omap /dev/hp3A-omap
 
     mount rootfs rootfs / rw remount
+
+    chmod 0755 /pvr.sh
+    exec /pvr.sh
 
 # PDS Mount
     exec /system/bootmenu/script/pdsbackup.sh
@@ -107,6 +110,8 @@ on post-fs
     write /sys/block/mmcblk0/bdi/read_ahead_kb 512
 
 on post-fs-data
+
+    write /sys/class/leds/red/brightness 0
 
     # event in bootmenu (cpu settings & postbootmenu)
     exec /system/bin/logwrapper postbootmenu
@@ -161,13 +166,9 @@ on post-fs-data
 
     setprop vold.post_fs_data_done 1
 
-## TESTING....
 
-    write /sys/class/leds/red/brightness 0
     write /sys/class/leds/blue/brightness 0
-    write /sys/class/leds/green/brightness 1
-
-    exec /system/bin/bootmenu
+    # exec /system/bin/bootmenu
 
 on boot
 
