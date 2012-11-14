@@ -16,6 +16,9 @@ rm -f $REPACK/ota/system/media/video/*.480p.mp4
 # Smaller and smoother bootanimation
 #cp -f $DEVICE_TOP/prebuilt/bootanimation.zip $REPACK/ota/system/media/bootanimation.zip
 
+# Fix for su (v3.2 downloaded from Market)
+cp -f $DEVICE_TOP/prebuilt/su $REPACK/ota/system/xbin/
+
 # Apk required, (forbidden in product copy files in ics)
 cp -f $VENDOR_TOP/app/* $REPACK/ota/system/app/
 

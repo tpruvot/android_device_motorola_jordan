@@ -157,8 +157,4 @@ package_extract_file("system/bin/backuptool.functions", "/tmp/backuptool.functio
 set_perm(0, 0, 0777, "/tmp/backuptool.sh");
 run_program("/tmp/backuptool.sh", "restore");
 
-# temporary fix for su database
-mount("ext3", "EMMC", "/dev/block/mmcblk1p25", "/data");
-delete_recursive("/data/data/com.noshufou.android.su");
-
 show_progress(0.100000, 5);
