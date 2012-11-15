@@ -174,7 +174,7 @@ endif
 TARGET_PREBUILT_KERNEL := $(ANDROID_BUILD_TOP)/device/motorola/jordan/kernel
 
 # Extra : to build external modules sources
-MOTO_KERNEL_SOURCE := $(ANDROID_BUILD_TOP)/kernel/moto/mb525
+MOTO_KERNEL_SOURCE := $(ANDROID_BUILD_TOP)/kernel/moto/mb526
 MOTO_KERNEL_CONFIG := mapphone_defconfig
 TARGET_KERNEL_MODULES_EXT := $(ANDROID_BUILD_TOP)/device/motorola/jordan/modules
 
