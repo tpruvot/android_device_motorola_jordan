@@ -11,10 +11,13 @@ if [ -z "$MAX_TOUCH" ]; then
     MAX_TOUCH=2
 fi
 
-# Dont load if on custom kernel
-if [ ! -f /proc/config.gz ]; then
+# Don't load on custom kernel
+if [ -f /proc/config.gz ]; then
 
-# Load the module
-insmod $MODULE touch_num=$MAX_TOUCH
+  echo $MAX_TOUCH > /proc/multitouch/num
+
+else
+  # Load the module
+  insmod $MODULE touch_num=$MAX_TOUCH
 
 fi
