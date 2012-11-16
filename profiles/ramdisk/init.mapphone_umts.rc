@@ -13,24 +13,22 @@ loglevel 9
     mkdir /mnt/sdcard  0700 root root
     symlink /mnt/sdcard /sdcard
 
-    # Adb at boot
-    write /dev/usb_device_mode charge_adb
-    write /tmp/usbd_current_state usb_mode_charge_adb
-    chmod 0666 /tmp/usbd_current_state
-    start adbd
-
 on fs
 
-# Mount mmc partitions
+    # Mount mmc partitions
     mkdir /pds 0775 system system
+
+    exec /system/bin/e2fsck -y /dev/block/mmcblk1p21
+
     mount ext3 /dev/block/mmcblk1p21 /system
     mount ext3 /dev/block/mmcblk1p21 /system ro remount
     mount ext3 /dev/block/mmcblk1p24 /cache nosuid nodev noatime nodiratime barrier=0
     mount ext3 /dev/block/mmcblk1p25 /data nosuid nodev noatime nodiratime barrier=0
 
-#    mount ext4 /dev/block/mmcblk1p24 /cache noatime noauto_da_alloc nosuid nodev nodiratime barrier=0 nobh
-#    mount ext4 /dev/block/mmcblk1p25 /data noatime noauto_da_alloc nosuid nodev nodiratime barrier=0 nobh
+    #mount ext4 /dev/block/mmcblk1p24 /cache wait noatime nodev barrier=0 nobh data=writeback noauto_da_alloc commit=30
+    #mount ext4 /dev/block/mmcblk1p25 /data  wait noatime nodev barrier=0 nobh data=writeback noauto_da_alloc commit=30
 
+    mount debugfs debugfs /sys/kernel/debug
 
 on post-fs
 
@@ -39,6 +37,12 @@ on post-fs
     symlink mmcblk1p21 /dev/block/system
     symlink mmcblk1p24 /dev/block/cache
     symlink mmcblk1p25 /dev/block/userdata
+
+    # Adb at boot
+    #write /dev/usb_device_mode charge_adb
+    #write /tmp/usbd_current_state usb_mode_charge_adb
+    #chmod 0666 /tmp/usbd_current_state
+    #start adbd
 
     # Load new kernel modules
     insmod /system/lib/modules/netmux-2ndboot.ko
@@ -49,46 +53,51 @@ on post-fs
     # Overclock after 2ndboot.
     # exec /sbin/sh /system/bootmenu/script/overclock.sh
 
-# Backward compatibility
+    # Backward compatibility
     symlink /dev /dev/netmux
     symlink /dev/ttyGS0 /dev/acm0
     symlink /dev/hp3a-omap /dev/hp3A-omap
 
     mount rootfs rootfs / rw remount
 
-    chmod 0755 /pvr.sh
-    exec /pvr.sh
+    # Load the SGX modules
+    insmod /system/lib/modules/pvrsrvkm-2ndboot.ko
+    insmod /system/lib/modules/omaplfb-2ndboot.ko
 
-# PDS Mount
+    # PDS Mount
     exec /system/bootmenu/script/pdsbackup.sh
 
-# Busybox
+    # Busybox
     mkdir /data/local/tmp 0777 system shell
     export HISTFILE /data/local/tmp/.ash_history
     export HISTFILESIZE 1000
     export ENV /system/etc/profile
 
-# Mount tmp, we dont have swap, use ramfs which can grow if required
+    # Mount tmp, use ramfs which can grow if required
     mkdir /tmp
     mount ramfs ramfs /tmp size=512k relatime
     chmod 0777 /tmp
     chown system shell /tmp
 
-# Restore good uid, mount as ramfs reset to root root 755
+    # Restore good uid, mount as ramfs reset to root root 755
     chown root system /mnt/asec
     chmod 0755 /mnt/asec
     chown root system /mnt/obb
     chmod 0755 /mnt/obb
 
-# Configure kernel options
+    # Configure kernel options
+    ##########################
+
     # Enable automatic power control for EHCI USB IPC
     write /sys/devices/platform/ehci-omap.0/usb1/power/level auto
     write /sys/devices/platform/ehci-omap.0/usb1/power/autosuspend 0
     write /sys/devices/platform/ehci-omap.0/usb1/1-3/power/level auto
     write /sys/devices/platform/ehci-omap.0/usb1/1-3/power/autosuspend 0
+
     # Disable a system-wide task dump on OOM in default
     write /proc/sys/vm/oom_dump_tasks 0
     write /proc/sys/fs/suid_dumpable 2
+
     # Power Management
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ondemand
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 300000
@@ -96,17 +105,19 @@ on post-fs
     write /sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate 46875
     write /sys/power/sr_vdd1_autocomp 1
     write /sys/power/sr_vdd2_autocomp 1
-# Change ownership for vibrators
+
+    # Change ownership for vibrators
     chown system system /sys/class/timed_output/vibrator/enable
     chown system system /sys/class/timed_output/vibrator/sweep
     chmod 0660 /sys/class/timed_output/vibrator/enable
     chmod 0660 /sys/class/timed_output/vibrator/sweep
-# bluetooth power up/down interface (wl127x Bluetooth and hci0)
+
+    # bluetooth power up/down interface (wl127x Bluetooth and hci0)
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chmod 0660 /sys/class/rfkill/rfkill0/state
 
-# Tweaks
+    # Tweaks
     write /sys/block/mmcblk0/bdi/read_ahead_kb 512
 
 on post-fs-data
@@ -114,7 +125,7 @@ on post-fs-data
     write /sys/class/leds/red/brightness 0
 
     # event in bootmenu (cpu settings & postbootmenu)
-    exec /system/bin/logwrapper postbootmenu
+    # exec /system/bin/bootmenu postbootmenu
 
     mount rootfs rootfs / ro remount
 
@@ -166,10 +177,6 @@ on post-fs-data
 
     setprop vold.post_fs_data_done 1
 
-
-    write /sys/class/leds/blue/brightness 0
-    # exec /system/bin/bootmenu
-
 on boot
 
     # Enable panic on softlockup
@@ -209,6 +216,8 @@ on boot
     exec /system/bin/mot_boot_mode
     class_start charger
 
+    write /sys/class/leds/blue/brightness 0
+
 on charger
 on property:sys.chargeonly.mode=1
     class_reset main
@@ -219,7 +228,7 @@ on property:sys.chargeonly.mode=1
 on property:init.svc.wpa_supplicant=stopped
     stop dhcpcd
 
-#TODO: key shortcuts seems buggy in ics
+# TODO: key shortcuts seems buggy in ics (see KEYCHORD kernel feature)
 service reboot_key /system/bin/reboot
     user system
     group root
@@ -232,10 +241,10 @@ service usbd /system/bin/usbd
     user root
     socket usbd stream 666 root system
 
-service bp-ptc /system/bin/bp_ptc
-    class main
-    user root
-    group root
+#service bp-ptc /system/bin/bp_ptc
+#    class main
+#    user root
+#    group root
 
 service charge /system/bin/charge_only_mode
     group root
