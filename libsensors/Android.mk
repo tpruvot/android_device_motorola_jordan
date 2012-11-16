@@ -29,10 +29,6 @@ LOCAL_MODULE_TAGS := eng debug
 
 LOCAL_CFLAGS := -DLOG_TAG=\"Sensors\"
 
-ifneq ($(BOARD_DEFY_MODEL),DEFY_FROYO)
-LOCAL_CFLAGS += -DDEFYPLUS
-endif
-
 LOCAL_SRC_FILES := \
 	sensors.c \
 	nusensors.cpp \
@@ -41,7 +37,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_SRC_FILES +=  SensorKXTF9.cpp
 LOCAL_SRC_FILES +=  SensorAK8973.cpp
-LOCAL_SRC_FILES +=  SensorISL29030.cpp
+LOCAL_SRC_FILES +=  SensorISL29030.cpp SensorISL29030_MB526.cpp
 
 LOCAL_SHARED_LIBRARIES := liblog libcutils
 
