@@ -5,16 +5,18 @@
 # Module location
 MODULE_DIR="/system/lib/modules"
 
+busybox mount -o remount,rw /system
+
 if [ -L $MODULE_DIR/tiwlan_drv.ko ]; then
   rm $MODULE_DIR/tiwlan_drv.ko
 else
-  # log "Wifi module is not a symlink !"
+  log -t wifi tiwlan_drv.ko is not a symlink !
 fi
 
 if [ -L $MODULE_DIR/tiap_drv.ko ]; then
   rm $MODULE_DIR/tiap_drv.ko
 else
-  # log "Wifi module is not a symlink !"
+  log -t wifi tiap_drv.ko is not a symlink !
 fi
 
 
