@@ -50,9 +50,6 @@ on post-fs
     insmod /system/lib/modules/modem_pm_driver-2ndboot.ko
     insmod /system/lib/modules/cifs-2ndboot.ko
 
-    # Overclock after 2ndboot.
-    # exec /sbin/sh /system/bootmenu/script/overclock.sh
-
     # Backward compatibility
     symlink /dev /dev/netmux
     symlink /dev/ttyGS0 /dev/acm0
@@ -63,6 +60,10 @@ on post-fs
     # Load the SGX modules
     insmod /system/lib/modules/pvrsrvkm-2ndboot.ko
     insmod /system/lib/modules/omaplfb-2ndboot.ko
+    insmod /system/lib/modules/symsearch-2ndboot.ko
+
+    # Overclock after 2ndboot.
+    exec /sbin/sh /system/bootmenu/script/overclock.sh
 
     # PDS Mount
     exec /system/bootmenu/script/pdsbackup.sh
