@@ -33,6 +33,7 @@
 #include "SensorKXTF9.h"
 #include "SensorAK8973.h"
 #include "SensorISL29030.h"
+#include "SensorISL29030_MB526.h"
 
 /*****************************************************************************/
 
@@ -42,6 +43,8 @@ struct sensors_poll_context_t
 
     sensors_poll_context_t();
     ~sensors_poll_context_t();
+
+    static bool is_mb526(void);
 
     int activate(int handle, int enabled);
     int setDelay(int handle, int64_t ns);
@@ -87,6 +90,17 @@ private:
 
 /*****************************************************************************/
 
+bool sensors_poll_context_t::is_mb526(void)
+{
+    bool mb526 = false;
+    int fd = open("/proc/config.gz", O_RDONLY);
+    mb526 = (fd > 0);
+    if (mb526) {
+        close(fd);
+    }
+    return mb526;
+}
+
 sensors_poll_context_t::sensors_poll_context_t()
 {
     mSensors[KXTF9] = new SensorKXTF9();
@@ -99,15 +113,30 @@ sensors_poll_context_t::sensors_poll_context_t()
     mPollFds[AK8973].events = POLLIN;
     mPollFds[AK8973].revents = 0;
 
-    mSensors[ISL29030P] = new SensorISL29030P();
-    mPollFds[ISL29030P].fd = mSensors[ISL29030P]->getFd();
-    mPollFds[ISL29030P].events = POLLIN;
-    mPollFds[ISL29030P].revents = 0;
+    if (is_mb526()) {
 
-    mSensors[ISL29030L] = new SensorISL29030L();
-    mPollFds[ISL29030L].fd = mSensors[ISL29030L]->getFd();
-    mPollFds[ISL29030L].events = POLLIN;
-    mPollFds[ISL29030L].revents = 0;
+        mSensors[ISL29030P] = new SensorISL29030P526();
+        mPollFds[ISL29030P].fd = mSensors[ISL29030P]->getFd();
+        mPollFds[ISL29030P].events = POLLIN;
+        mPollFds[ISL29030P].revents = 0;
+
+        mSensors[ISL29030L] = new SensorISL29030L526();
+        mPollFds[ISL29030L].fd = mSensors[ISL29030L]->getFd();
+        mPollFds[ISL29030L].events = POLLIN;
+        mPollFds[ISL29030L].revents = 0;
+
+    } else {
+
+        mSensors[ISL29030P] = new SensorISL29030P();
+        mPollFds[ISL29030P].fd = mSensors[ISL29030P]->getFd();
+        mPollFds[ISL29030P].events = POLLIN;
+        mPollFds[ISL29030P].revents = 0;
+
+        mSensors[ISL29030L] = new SensorISL29030L();
+        mPollFds[ISL29030L].fd = mSensors[ISL29030L]->getFd();
+        mPollFds[ISL29030L].events = POLLIN;
+        mPollFds[ISL29030L].revents = 0;
+    }
 
     int wakeFds[2];
     int result = pipe(wakeFds);
