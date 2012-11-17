@@ -92,13 +92,12 @@ private:
 
 bool sensors_poll_context_t::is_mb526(void)
 {
-    bool mb526 = false;
-    int fd = open("/proc/config.gz", O_RDONLY);
-    mb526 = (fd > 0);
-    if (mb526) {
+    int fd = open("/proc/socinfo", O_RDONLY);
+    if (fd >= 0) {
         close(fd);
+        return true;
     }
-    return mb526;
+    return false;
 }
 
 sensors_poll_context_t::sensors_poll_context_t()
