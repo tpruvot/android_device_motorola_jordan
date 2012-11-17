@@ -114,6 +114,9 @@ PRODUCT_PACKAGES += RomUpdater
 # CM9 apps
 PRODUCT_PACKAGES += CMFileManager CMFileManagerThemes Torch Apollo CMUpdater
 
+# EAP SIM Smartcard support
+PRODUCT_PACKAGES += SmartcardService libassd org.simalliance.openmobileapi.xml org.simalliance.openmobileapi.xml pcsclite libpcsclite testpcsc
+
 # Experimental TI OpenLink
 PRODUCT_PACKAGES += libnl_2 iw
 

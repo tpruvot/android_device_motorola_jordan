@@ -74,6 +74,9 @@ BOARD_HOSTAPD_DRIVER        := true
 BOARD_HOSTAPD_DRIVER_NAME   := wilink
 BOARD_HOSTAPD_TIAP_ROOT     := system/wlan/ti/WiLink_AP
 
+# Wifi EAP SIM
+BOARD_WPA_SUPPLICANT_PRIVATE_LIB := libpcsclite
+
 # Netfilter
 #BOARD_WITHOUT_IPV6_QUOTA := true
 
