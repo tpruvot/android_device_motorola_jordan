@@ -9,6 +9,10 @@ MODULE_DIR="/system/lib/modules"
 SCALING_GOVERNOR="/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
 ASKED_MODE=$1
 
+if [ -f /proc/config.gz ]; then
+  CUSTOM_KERNEL=1
+fi
+
 #############################################################
 # Parameters Load
 #############################################################
@@ -57,6 +61,9 @@ param_load()
   for CONF in $(sed -e 's/^\([^ ]*\) \(.*\)/\1=\2/g' $CONFIG_FILE); do
     export $CONF
   done
+  if [ -n "$CUSTOM_KERNEL" ]; then
+    export load_all=1
+  fi
 }
 
 param_safe()
@@ -98,18 +105,24 @@ get_address()
 install_module()
 {
   # load module
-  insmod $MODULE_DIR/overclock_defy.ko omap2_clk_init_cpufreq_table_addr=0x$cpufreq_table
+  if [ -z "$CUSTOM_KERNEL" ]; then
+    insmod $MODULE_DIR/overclock_defy.ko omap2_clk_init_cpufreq_table_addr=0x$cpufreq_table
+  else
+    insmod $MODULE_DIR/overclock_defy-2ndboot.ko omap2_clk_init_cpufreq_table_addr=0x$cpufreq_table
+  fi
   #set cpufreq_stats_update_addr
   echo 0x$stats_update > /proc/overclock/cpufreq_stats_update_addr
   if [ $load_all -eq 1 ]; then
-    insmod $MODULE_DIR/cpufreq_conservative.ko
-    insmod $MODULE_DIR/cpufreq_powersave.ko
-    insmod $MODULE_DIR/symsearch.ko
-    insmod $MODULE_DIR/clockfix.ko
-    insmod $MODULE_DIR/cpufreq_stats.ko
-    insmod $MODULE_DIR/cpufreq_interactive.ko
-    insmod $MODULE_DIR/cpufreq_smartass.ko
-    insmod $MODULE_DIR/cpufreq_boosted.ko
+    if [ -z "$CUSTOM_KERNEL" ]; then
+      insmod $MODULE_DIR/cpufreq_conservative.ko
+      insmod $MODULE_DIR/cpufreq_powersave.ko
+      insmod $MODULE_DIR/symsearch.ko
+      insmod $MODULE_DIR/clockfix.ko
+      insmod $MODULE_DIR/cpufreq_stats.ko
+      insmod $MODULE_DIR/cpufreq_interactive.ko
+      insmod $MODULE_DIR/cpufreq_smartass.ko
+      insmod $MODULE_DIR/cpufreq_boosted.ko
+    fi
   fi
   busybox chown -R system /sys/devices/system/cpu
   busybox chown -R system /sys/class/block/mmc*/queue
