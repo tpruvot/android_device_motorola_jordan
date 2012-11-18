@@ -146,7 +146,8 @@ echo
 
 # Addons packages, if any
 if [ -x $DEVICE_TOP/releasetools/addons ]; then
-	$DEVICE_TOP/releasetools/addons kernel
+	$DEVICE_TOP/releasetools/addons 2ndboot
+#	$DEVICE_TOP/releasetools/addons kernel
 #	$DEVICE_TOP/releasetools/addons bootmenu
 #	$DEVICE_TOP/releasetools/addons twrp-recovery
 fi

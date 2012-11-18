@@ -59,3 +59,16 @@ if [ "$1" = "twrp-recovery" ]; then
 	OUTFILE=$OUT/openrecovery-twrp-2.1.0-jordan-signed.zip
 fi
 
+if [ "$1" = "2ndboot" ]; then
+
+	cd $REPACK/ota
+	rm -f $REPACK/ota/*.img
+	rm -rf $REPACK/ota/system
+
+	cat $DEVICE_TOP/releasetools/updater-addons-2ndboot > $REPACK/ota/META-INF/com/google/android/updater-script
+
+	unzip -q $OTAPACKAGE "system/bootmenu/2nd-boot/*" "system/lib/modules/*-2ndboot.ko"
+
+	OUTFILE=$OUT/2ndboot-kernel.zip
+fi
+

@@ -1,0 +1,13 @@
+ui_print("Updating 2nd-boot kernel and modules");
+
+show_progress(0.000000, 0);
+mount("ext3", "EMMC", "/dev/block/mmcblk1p21", "/system");
+
+package_extract_dir("system", "/system");
+show_progress(0.500000, 0);
+
+mount("ext3", "EMMC", "/dev/block/mmcblk1p25", "/data");
+delete_recursive("/data/dalvik-cache");
+
+show_progress(0.500000, 0);
+

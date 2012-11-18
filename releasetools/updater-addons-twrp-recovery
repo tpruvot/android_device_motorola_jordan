@@ -26,7 +26,7 @@ ui_print(" ");
 ui_print("Extracting Update Resources...");
 
 show_progress(0.100000, 0);
-mount("ext4", "EMMC", "/dev/block/mmcblk0p12", "/system");
+mount("ext3", "EMMC", "/dev/block/mmcblk1p21", "/system");
 
 show_progress(0.200000, 0);
 package_extract_dir("system", "/system");
