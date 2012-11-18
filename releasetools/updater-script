@@ -128,7 +128,6 @@ symlink("indeterminate.png","/system/bootmenu/images/indeterminate3.png");
 symlink("indeterminate.png","/system/bootmenu/images/indeterminate4.png");
 symlink("indeterminate.png","/system/bootmenu/images/indeterminate5.png");
 symlink("indeterminate.png","/system/bootmenu/images/indeterminate6.png");
-set_perm(0, 0, 0755, "/system/bootmenu/2nd-init/init");
 set_perm_recursive(0, 2000, 0775, 0664, "/system/bootmenu/config/");
 set_perm_recursive(0, 2000, 0755, 0755, "/system/bin");
 set_perm(0, 3003, 02750, "/system/bin/netcfg");
