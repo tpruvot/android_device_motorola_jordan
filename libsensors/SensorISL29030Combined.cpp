@@ -26,6 +26,7 @@
 //#define LOG_NDEBUG 0
 #include <cutils/log.h>
 
+#define DEFYPLUS
 #include "kernel/isl29030.h"
 
 #include "SensorISL29030Combined.h"
