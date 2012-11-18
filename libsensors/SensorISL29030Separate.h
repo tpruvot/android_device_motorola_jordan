@@ -15,8 +15,8 @@
  * limitations under the License.
  */
  
-#ifndef ANDROID_ISL29030_SENSOR_H
-#define ANDROID_ISL29030_SENSOR_H
+#ifndef ANDROID_ISL29030_MB525_H
+#define ANDROID_ISL29030_MB525_H
 
 #include <stdint.h>
 #include <errno.h>
@@ -74,4 +74,4 @@ protected:
 
 /*****************************************************************************/
 
-#endif  // ANDROID_ISL29030_SENSOR_H
+#endif  // ANDROID_ISL29030_MB525_H
