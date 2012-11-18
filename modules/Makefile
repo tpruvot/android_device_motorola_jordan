@@ -6,15 +6,8 @@
 obj-m += symsearch/
 obj-m += overclock/
 obj-m += backlight/
-obj-m += multitouch/
-obj-m += mmcfix/
-obj-m += gpiofix/
-obj-m += clockfix/
 obj-m += logcap/
-obj-m += usbled/
-obj-m += netfilter/
 obj-m += klogger/
-obj-m += thumbee/
 
 # mb525/mb526 specific
 obj-m += proximity/
@@ -34,6 +27,27 @@ obj-m += omap3/gpu/pvr/
 # experimental
 obj-m += camera_misc/
 
+EXTRA_CFLAGS += -I$(KERNEL_DIR) -DDEFYPLUS
+
+#####################################
+# 2nd-init only modules
+#####################################
+ifneq ($(CONFIG_MAPPHONE_2NDBOOT),y)
+
+EXTRA_CFLAGS += -DUTS_RELEASE=\\\"2.6.32.9\\\"
+
+# Only required for stock kernel
+obj-m += multitouch/
+obj-m += mmcfix/
+obj-m += gpiofix/
+obj-m += clockfix/
+obj-m += netfilter/
+obj-m += thumbee/
+obj-m += usbled/
+
+endif
+#####################################
+
 PWD := $(shell pwd)
 
 .PHONY: clean
@@ -46,9 +60,6 @@ clean:
 	@find $(PWD) | grep "\\.order$$" | xargs rm -f
 	@find $(PWD) | grep "\\.tmp_versions$$" | xargs rm -rf
 	@cd $(PWD) && git checkout *.ko
-
-
-EXTRA_CFLAGS += -I$(KERNEL_DIR) -DUTS_RELEASE=\\\"2.6.32.9\\\" -DDEFYPLUS
 
 .PHONY: all
 #######################################################################################
