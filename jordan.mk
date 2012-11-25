@@ -109,6 +109,8 @@ PRODUCT_PACKAGES += DroidSSHd
 
 PRODUCT_PACKAGES += RomUpdater
 
+PRODUCT_PACKAGES += MotoFM MotoFMService
+
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
