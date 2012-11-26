@@ -44,8 +44,7 @@ struct abstract_buffer {
 #define IMG_INITRAMFS    (2)
 #define IMG_MOTFLATTREE  (3)
 #define IMG_CMDLINE      (4)
-#define IMG_MBM          (5)
-
+#define IMG_USBFW        (5)
 #define IMG_BPLOADER     (6)
 #define IMG_BPFW         (7)
 

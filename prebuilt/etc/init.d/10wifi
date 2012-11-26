@@ -1,0 +1,41 @@
+#!/system/bin/sh
+#
+# symlink wifi module for 2ndinit vs 2ndboot kernels
+
+# Module location
+MODULE_DIR="/system/lib/modules"
+
+busybox mount -o remount,rw /system
+
+if [ -L $MODULE_DIR/tiwlan_drv.ko ]; then
+  rm $MODULE_DIR/tiwlan_drv.ko
+else
+  log -t wifi tiwlan_drv.ko is not a symlink !
+fi
+
+if [ -L $MODULE_DIR/tiap_drv.ko ]; then
+  rm $MODULE_DIR/tiap_drv.ko
+else
+  log -t wifi tiap_drv.ko is not a symlink !
+fi
+
+
+# Unlike other modules, the wifi can't be included in kernel, so
+# we need to symlink the module regarding the kernel variant
+
+if [ -f /proc/config.gz ]; then
+
+  # custom kernel
+
+  ln -s $MODULE_DIR/tiwlan_drv-2ndboot.ko $MODULE_DIR/tiwlan_drv.ko
+  ln -s $MODULE_DIR/tiap_drv-2ndboot.ko $MODULE_DIR/tiap_drv.ko
+
+else
+
+  # stock kernel
+
+  ln -s $MODULE_DIR/tiwlan_drv-stock.ko $MODULE_DIR/tiwlan_drv.ko
+  ln -s $MODULE_DIR/tiap_drv-stock.ko $MODULE_DIR/tiap_drv.ko
+
+fi
+

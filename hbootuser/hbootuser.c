@@ -14,18 +14,13 @@
 #define _STR(x) #x
 #define STR(x) _STR(x)
 
-#define perror(x...) \
-	fprintf(stderr, x); \
-	if (errno) fprintf(stderr, " err %d\n", errno); \
-	else fprintf(stderr, "\n"); \
-	errno = 0;
-
 int handle_file(FILE *fp, int tag, int *buf);
 int handle_nand(FILE *fp, int tag, int *buf);
 
-static int ctrlfd;
-static int buffers[MAX_BUFFERS_COUNT];
-static int loader = 0;
+int ctrlfd;
+int buffers[MAX_BUFFERS_COUNT];
+int buffers_count;
+int loader = INVALID_BUFFER_HANDLE;
 
 struct source_type {
 	const char *name;
@@ -46,8 +41,11 @@ int open_ctrl() {
 }
 
 size_t fdsize(int fd) {
-	off_t seek = lseek(fd, 0, SEEK_END);
+	off_t seek;
+
+	seek = lseek(fd, 0, SEEK_END);
 	lseek(fd, 0, SEEK_SET);
+
 	return (size_t)seek;
 }
 
@@ -73,7 +71,7 @@ int try_file(const char *path, size_t *size) {
 int allocate_buffer(int tag, size_t size, int type, int attrs, uint32_t rest) {
 	struct hboot_buffer_req req;
 	int ret;
-	printf("Enter to allocate_buffer, ctrlfd=%d \n", ctrlfd);
+
 	req.tag = (uint8_t)tag;
 	req.attrs = (uint8_t)attrs;
 	req.type = (uint8_t)type;
@@ -81,30 +79,26 @@ int allocate_buffer(int tag, size_t size, int type, int attrs, uint32_t rest) {
 	req.rest = rest;
 
 	if ((ret = ioctl(ctrlfd, HBOOT_ALLOCATE_BUFFER, &req)) < 0) {
-		perror("allocate_buffer error, ioctl");
+		perror("ioctl");
 	}
-	printf("ret of allocate_buffer %d \n", ret);
 	return ret;
 }
 
 int free_buffer(int buffer) {
 	int ret;
-	printf("Enter to free_buffer, buffer=%d, ctrlfd=%d \n",buffer, ctrlfd);
+
 	if ((ret = ioctl(ctrlfd, HBOOT_FREE_BUFFER, buffer)) < 0) {
-		perror("free_buffer error, ioctl");
+		perror("ioctl");
 	}
 	return ret;
-	printf("ret of free_buffer %d \n", ret);
 }
 
 int select_buffer(int buffer) {
 	int ret;
-	printf("Enter to select_buffer, buffer=%d, ctrlfd=%d  \n",buffer, ctrlfd);
+
 	if ((ret = ioctl(ctrlfd, HBOOT_SELECT_BUFFER, buffer)) < 0) {
-		perror("select_buffer error, ioctl");
-		printf("ret of select_buffer %d \n",ret);
+		perror("ioctl");
 	}
-	printf("ret of select_buffer %d \n", ret);
 	return ret;
 }
 
@@ -126,59 +120,7 @@ int fd2fd(int in, size_t size, int out) {
 }
 
 void boot(int handle) {
-	int rv = ioctl(ctrlfd, HBOOT_BOOT, handle);
-	sleep(5);
-	printf("HBOOT_BOOT ioctl %d \n", rv);
-}
-
-int handle_file2(const char *fname, int tag, int *buf) {
-	int btype;
-	int battrs;
-	size_t filesize;
-	int fd;
-
-	// Dont try to load next files if previous was bad
-	if (loader == INVALID_BUFFER_HANDLE) {
-		return -2;
-	}
-	loader = INVALID_BUFFER_HANDLE;
-
-	if ((fd = try_file(fname, &filesize)) < 0) {
-		perror("open(%s)", fname);
-		return -1;
-	}
-
-//	if ((tag == 0) || (filesize < 4*4096)) {
-	if (tag == 0) {
-		btype = B_TYPE_PLAIN;
-	} else {
-		btype = B_TYPE_SCATTERED;
-	}
-	if (tag == 0) {
-		battrs = 0;
-	} else {
-		battrs = B_ATTR_VERIFY;
-	}
-	if ((*buf = allocate_buffer(tag, filesize, btype, battrs, 0)) == INVALID_BUFFER_HANDLE) {
-		fprintf(stderr, "failed to allocate buffer\n");
-		close(fd);
-		return -1;
-	}
-	select_buffer(*buf);
-	printf("select_buffer(*buf)\n");
-	if (fd2fd(fd, filesize, ctrlfd) < 0) {
-		fprintf(stderr, "failed to copy file contents\n");
-		close(fd);
-		free_buffer(*buf);
-		return -1;
-	}
-	printf("loaded file %s\n", fname);
-	close(fd);
-
-	// mark as loaded succesfully
-	loader = tag;
-
-	return 0;
+	ioctl(ctrlfd, HBOOT_BOOT, handle);
 }
 
 int handle_file(FILE *fp, int tag, int *buf) {
@@ -238,26 +180,21 @@ int handle_nand(FILE *fp, int tag, int *buf) {
 }
 
 int main(int argc, char **argv) {
-	FILE *fp = NULL;
-	int n = MAX_BUFFERS_COUNT;
-	while (n--) {
-		buffers[n] = INVALID_BUFFER_HANDLE;
-	}
-
-	if (open_ctrl() < 0) {
-		perror("Unable to open hboot control device !");
+	FILE *fp;
+	
+	if (argc != 2) {
+		fprintf(stderr, "Usage: %s <descriptor>\n", argv[0]);
 		return 1;
 	}
-
-/*	if (argc != 2) {
-		fprintf(stderr, "Usage: %s <descriptor>\n", argv[0]);
+	if (open_ctrl() < 0) {
+		perror("open(ctrl device)");
 		return 1;
 	}
 	if ((fp = fopen(argv[1], "r")) == NULL) {
 		perror("open(descriptor file)");
 		return 1;
 	}
-
+	
 	while (buffers_count < MAX_BUFFERS_COUNT) {
 		int tag;
 		int ret;
@@ -266,10 +203,12 @@ int main(int argc, char **argv) {
 
 		ret = fscanf(fp, "%d", &tag);
 		if (ret == EOF) {
+/*
 			if (errno) {
 				perror("fscanf()");
 				goto out;
 			}
+*/
 			break;
 		} else if (ret != 1) {
 			fscanf(fp, "%*[^\n]");
@@ -294,32 +233,20 @@ int main(int argc, char **argv) {
 		}
 		fscanf(fp, "%*[^\n]");
 	}
-*/
-	n = 0;
-	handle_file2("/system/2ndboot/boot",       0, &buffers[n++]);
-	handle_file2("/system/2ndboot/kernel",     1, &buffers[n++]);
-	handle_file2("/system/2ndboot/ramdisk",    2, &buffers[n++]);
-	handle_file2("/system/2ndboot/devtree",    3, &buffers[n++]);
-	handle_file2("/system/2ndboot/cmdline",    4, &buffers[n++]);
-
-	if (fp) fclose(fp);
+	fclose(fp);
 	fp = NULL;
-	if (loader < 4) {
-		perror("Unable to load all parts");
+	if (loader == INVALID_BUFFER_HANDLE) {
+		fprintf(stderr, "No loader provided\n");
 		goto out;
 	}
-	printf("Everything is loaded, booting ^^\n");
+	printf("Everything is loaded, booting\n");
 	fflush(stdout);
-	sleep(2);
 	boot(loader);
 out:
-	printf("exiting....\n");
 	if (fp) fclose(fp);
-	n = MAX_BUFFERS_COUNT;
-	while (n--) {
-		if (buffers[n] != INVALID_BUFFER_HANDLE) {
-			free_buffer(buffers[n]);
-			buffers[n] = INVALID_BUFFER_HANDLE;
+	while (buffers_count-- > 0) {
+		if (buffers[buffers_count] != INVALID_BUFFER_HANDLE) {
+			free_buffer(buffers[buffers_count]);
 		}
 	}
 	return 1;

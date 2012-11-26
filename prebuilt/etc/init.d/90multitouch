@@ -8,5 +8,13 @@ MODULE="/system/lib/modules/multitouch.ko"
 # Max number of fingers
 MAX_TOUCH=`getprop persist.sys.multitouch`
 
-# Load the module
-insmod $MODULE touch_num=$MAX_TOUCH
+# Don't load on custom kernel
+if [ -f /proc/config.gz ]; then
+
+  echo $MAX_TOUCH > /proc/multitouch/num
+
+else
+  # Load the module
+  insmod $MODULE touch_num=$MAX_TOUCH
+
+fi

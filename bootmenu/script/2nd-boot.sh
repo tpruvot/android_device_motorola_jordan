@@ -1,33 +1,18 @@
-#!/system/bootmenu/binary/busybox ash
+#!/sbin/busybox ash
 
 ######## BootMenu Script
 ######## Execute [2nd-boot] Menu
 
 source /system/bootmenu/script/_config.sh
 
+export PATH=/sbin:$PATH
+
 ######## Main Script
 
-mount -o remount,rw /
-rm -f /*.rc
-rm -f /osh
-rm -rf /preinstall
-cp -r -f /system/bootmenu/2nd-boot/* /
-killall ueventd
-
-ADBD_RUNNING=`ps | grep adbd | grep -v grep`
-if [ -z "$ADB_RUNNING" ]; then
-    rm -f /tmp/usbd_current_state
-fi
-
-# original /tmp data symlink
-if [ -L /tmp.bak ]; then
-  rm /tmp.bak
-fi
-
-if [ -L /sdcard-ext ]; then
-    rm /sdcard-ext
-    mkdir -p /sd-ext
-fi
+toolbox mount -o remount,rw rootfs /
+mkdir /2ndboot
+cp -f /system/bootmenu/2nd-boot/* /2ndboot
+chmod 755 /2ndboot/*
 
 ## unmount devices
 sync
@@ -37,29 +22,19 @@ umount /dev/pts
 umount /mnt/asec
 umount /mnt/obb
 umount /cache
-umount /data/tmp
 umount /data
-
-######## Cleanup
-
-rm -f /sbin/adbd.root
-rm -f /sbin/lsof
-
-## busybox cleanup..
-for cmd in $(/sbin/busybox --list); do
-    [ -L "/sbin/$cmd" ] && rm "/sbin/$cmd"
-done
-
-rm -f /sbin/busybox
-
-## adbd shell
-ln -s /system/xbin/bash /sbin/sh
 
 ## reduce lcd backlight to save battery
 echo 18 > /sys/class/leds/lcd-backlight/brightness
 
+cd /2ndboot
 
-######## Let's go
+echo inserting hbootmod.ko
+insmod ./hbootmod.ko
 
-/system/bootmenu/binary/2nd-boot
+echo making node
+mknod /dev/hbootctrl c `cat /proc/devices | grep hboot | awk '{print $1}' ` 0
+
+echo starting hboot
+./hbootuser ./hboot.cfg
 

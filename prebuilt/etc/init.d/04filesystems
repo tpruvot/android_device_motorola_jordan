@@ -2,11 +2,19 @@
 #
 # Load cifs and ext4 kernel modules
 
-# slow-work is no more required, included in cifs module
-# busybox insmod /system/lib/modules/slow-work.ko
+if [ ! -f /proc/config.gz ]; then
+
+#insmod /system/lib/modules/slow-work.ko
 busybox insmod /system/lib/modules/nls_utf8.ko
-busybox insmod /system/lib/modules/cifs.ko
+busybox insmod /system/lib/modules/cifs-stock.ko
 
 busybox insmod /system/lib/modules/jbd2.ko
 busybox insmod /system/lib/modules/ext4.ko
 
+else
+
+  # on custom kernel, only load cifs
+
+  busybox insmod /system/lib/modules/cifs-2ndboot.ko
+
+fi

@@ -106,9 +106,14 @@ set_perm_recursive(0, 0, 0755, 0644, "/system");
 set_perm_recursive(0, 0, 0755, 0755, "/system/bootmenu/binary/");
 set_perm_recursive(0, 0, 0755, 0755, "/system/bootmenu/script/");
 set_perm_recursive(0, 0, 0755, 0755, "/system/bootmenu/recovery/sbin/");
-set_perm_recursive(0, 0, 0755, 0755, "/system/bootmenu/2nd-boot/sbin/");
+set_perm(0, 0, 0755, "/system/bootmenu/2nd-boot/hbootuser");
+symlink("indeterminate.png","/system/bootmenu/images/indeterminate1.png");
+symlink("indeterminate.png","/system/bootmenu/images/indeterminate2.png");
+symlink("indeterminate.png","/system/bootmenu/images/indeterminate3.png");
+symlink("indeterminate.png","/system/bootmenu/images/indeterminate4.png");
+symlink("indeterminate.png","/system/bootmenu/images/indeterminate5.png");
+symlink("indeterminate.png","/system/bootmenu/images/indeterminate6.png");
 set_perm(0, 0, 0755, "/system/bootmenu/2nd-init/init");
-set_perm(0, 0, 0755, "/system/bootmenu/2nd-boot/init");
 set_perm_recursive(0, 2000, 0775, 0664, "/system/bootmenu/config/");
 set_perm_recursive(0, 2000, 0755, 0755, "/system/bin");
 set_perm(0, 3003, 02750, "/system/bin/netcfg");
@@ -141,3 +146,8 @@ set_perm(0, 0, 0777, "/tmp/modelid_cfg.sh");
 run_program("/tmp/modelid_cfg.sh");
 show_progress(0.100000, 5);
 
+# temporary fix for su database
+mount("ext3", "EMMC", "/dev/block/mmcblk1p25", "/data");
+delete_recursive("/data/data/com.noshufou.android.su");
+
+show_progress(0.100000, 5);

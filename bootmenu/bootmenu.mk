@@ -7,6 +7,10 @@ PRODUCT_PACKAGES += \
 	static_busybox \
 	static_logwrapper \
 	2nd-init.jordan \
+	utility_mke2fs \
+	utility_tune2fs \
+	e2fsck recovery_pigz \
+	hbootuser \
 
 # config
 PRODUCT_COPY_FILES += \
@@ -20,18 +24,24 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
 	${bm_device}/profiles/2nd-init/init.mapphone_umts.rc:system/bootmenu/2nd-init/init.mapphone_umts.rc \
 	${bm_device}/profiles/2nd-init/ueventd.rc:system/bootmenu/2nd-init/ueventd.rc \
-	${bm_device}/profiles/backup/init.rc:system/bootmenu/2nd-boot/init.rc \
-	${bm_device}/profiles/backup/init.mapphone_umts.rc:system/bootmenu/2nd-boot/init.mapphone_umts.rc \
-	${bm_device}/profiles/backup/ueventd.rc:system/bootmenu/2nd-boot/ueventd.rc \
-	${bm_device}/profiles/backup/init:system/bootmenu/2nd-boot/init \
-	${bm_device}/profiles/backup/sbin/ueventd:system/bootmenu/2nd-boot/sbin/ueventd \
 	${bm_device}/profiles/moto/froyo/init.rc:system/bootmenu/moto/froyo/init.rc \
 	${bm_device}/profiles/moto/froyo/init.mapphone_umts.rc:system/bootmenu/moto/froyo/init.mapphone_umts.rc \
+
+# 2nd-boot kernel loader
+PRODUCT_COPY_FILES += \
+	${bm_device}/profiles/2nd-boot/hbootmod.ko:system/bootmenu/2nd-boot/hbootmod.ko \
+	${bm_device}/profiles/2nd-boot/hboot.bin:system/bootmenu/2nd-boot/hboot.bin \
+	${bm_device}/profiles/2nd-boot/hboot.cfg:system/bootmenu/2nd-boot/hboot.cfg \
+	${bm_device}/profiles/2nd-boot/cmdline:system/bootmenu/2nd-boot/cmdline \
+	${bm_device}/profiles/2nd-boot/devtree:system/bootmenu/2nd-boot/devtree \
+	${bm_device}/profiles/2nd-boot/ramdisk.gz:system/bootmenu/2nd-boot/ramdisk.gz \
+	${bm_device}/profiles/2nd-boot/zImage:system/bootmenu/2nd-boot/zImage \
 
 # scripts
 PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/script/2nd-init.sh:system/bootmenu/script/2nd-init.sh \
 	${bm_device}/bootmenu/script/2nd-boot.sh:system/bootmenu/script/2nd-boot.sh \
+	${bm_device}/bootmenu/script/2nd-boot-uart.sh:system/bootmenu/script/2nd-boot-uart.sh \
 	${bm_device}/bootmenu/script/adbd.sh:system/bootmenu/script/adbd.sh \
 	${bm_device}/bootmenu/script/bootmode_clean.sh:system/bootmenu/script/bootmode_clean.sh \
 	${bm_device}/bootmenu/script/cdrom.sh:system/bootmenu/script/cdrom.sh \
@@ -43,6 +53,7 @@ PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/script/recovery.sh:system/bootmenu/script/recovery.sh \
 	${bm_device}/bootmenu/script/recovery_stable.sh:system/bootmenu/script/recovery_stable.sh \
 	${bm_device}/bootmenu/script/sdcard.sh:system/bootmenu/script/sdcard.sh \
+	${bm_device}/bootmenu/script/stock.sh:system/bootmenu/script/stock.sh \
 	${bm_device}/bootmenu/script/system.sh:system/bootmenu/script/system.sh \
 	${bm_device}/bootmenu/script/pdsbackup.sh:system/bootmenu/script/pdsbackup.sh \
 	${bm_device}/bootmenu/script/format_ext3.sh:system/bootmenu/script/format_ext3.sh \
@@ -52,20 +63,13 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
 	${bm_device}/bootmenu/binary/logwrapper.bin:system/bootmenu/binary/logwrapper.bin \
 	${bm_device}/bootmenu/binary/logwrapper.bin:system/bin/logwrapper.bin \
-	${bm_device}/bootmenu/binary/lsof.static:system/bootmenu/binary/lsof \
-	${bm_device}/bootmenu/binary/2nd-boot:system/bootmenu/binary/2nd-boot \
 	${bm_device}/bootmenu/binary/adbd.root:system/bootmenu/binary/adbd.root \
 	out/target/product/jordan/root/sbin/adbd:system/bootmenu/binary/adbd \
 	out/target/product/jordan/utilities/busybox:system/bootmenu/binary/busybox \
 
 # images
 PRODUCT_COPY_FILES += \
-	external/bootmenu/images/indeterminate1.png:system/bootmenu/images/indeterminate1.png \
-	external/bootmenu/images/indeterminate2.png:system/bootmenu/images/indeterminate2.png \
-	external/bootmenu/images/indeterminate3.png:system/bootmenu/images/indeterminate3.png \
-	external/bootmenu/images/indeterminate4.png:system/bootmenu/images/indeterminate4.png \
-	external/bootmenu/images/indeterminate5.png:system/bootmenu/images/indeterminate5.png \
-	external/bootmenu/images/indeterminate6.png:system/bootmenu/images/indeterminate6.png \
+	external/bootmenu/images/indeterminate1.png:system/bootmenu/images/indeterminate.png \
 	external/bootmenu/images/progress_empty.png:system/bootmenu/images/progress_empty.png \
 	external/bootmenu/images/progress_fill.png:system/bootmenu/images/progress_fill.png \
 	${bm_device}/bootmenu/images/background.png:system/bootmenu/images/background.png \

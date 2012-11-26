@@ -59,6 +59,7 @@ chmod 4755 /sbin/adbd.root
 ## /default.prop replace.. (TODO: check if that works)
 rm -f /default.prop
 cp -f $BM_ROOTDIR/config/default.prop /default.prop
+chmod 640 /default.prop
 
 ## mount cache
 mkdir -p /cache

@@ -1,0 +1,1 @@
+console=/dev/null mem=498M init=/init ip=off brdrev=P3A omapfb.vram=0:4M mmcparts=mmcblk1:p7(pds),p15(boot),p16(recovery),p17(cdrom),p18(misc),p19(cid),p20(kpanic),p21(system),p22(prek),p23(pkbackup),p24(cache),p25(userdata)

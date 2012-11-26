@@ -127,6 +127,11 @@ PRODUCT_COPY_FILES += $(shell test -d device/motorola/jordan/modules && \
 	find device/motorola/jordan/modules -name '*.ko' \
 	-printf '%p:system/lib/modules/%f ')
 
+# copy 2ndboot specific modules
+PRODUCT_COPY_FILES += $(shell test -d device/motorola/jordan/modules-2ndboot && \
+	find device/motorola/jordan/modules-2ndboot -name '*.ko' \
+	-printf '%p:system/lib/modules/%f ')
+
 # Prebuilt boot.img
 LOCAL_KERNEL := device/motorola/jordan/kernel
 PRODUCT_COPY_FILES += \

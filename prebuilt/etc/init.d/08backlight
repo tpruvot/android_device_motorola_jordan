@@ -4,6 +4,9 @@
 
 # Module location
 MODULE="/system/lib/modules/backlight.ko"
+if [ -f /proc/config.gz ]; then
+    MODULE="/system/lib/modules/backlight-2ndboot.ko"
+fi
 
 # Property to disable the module
 LOAD_MODULE=`getprop persist.sys.backlight.disable`

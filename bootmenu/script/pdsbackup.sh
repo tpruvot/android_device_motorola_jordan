@@ -7,7 +7,8 @@
 #       your device, like battery calibration, wifi and baseband
 #
 
-PATH=/system/xbin:$PATH
+# export for find -exec childs
+export PATH=/system/xbin:$PATH
 
 if [ ! -f /data/pds.img ] ; then
 
