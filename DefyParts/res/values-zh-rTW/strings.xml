@@ -66,7 +66,7 @@
     <string name="baseband_version">版本</string>
     <string name="baseband_frequencies">頻率: %1$s MHz</string>
     <string name="unknown">不明</string>
-<!--
+
     <string name="lto_download_title">A-GPS 離線星曆下載</string>
     <string name="lto_download_enabled_title">自動下載</string>
     <string name="lto_download_enabled_summary">若網路可用時，自動下載 A-GPS 星曆資料</string>
@@ -88,5 +88,4 @@
     <string name="lto_last_download_date_failure">上一次嘗試下載: %1$s (失敗)</string>
     <string name="lto_downloading_data">下載中\u2026 (%1$s%%)</string>
     <string name="never">永不執行</string>
--->
 </resources>
