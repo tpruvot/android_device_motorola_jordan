@@ -65,4 +65,27 @@
     <string name="yes">Oui</string>
     <string name="no">Non</string>
 
+    <string name="lto_download_title">Données LTO</string>
+    <string name="lto_download_summary">Télécharger les données A-GPS pour améliorer les performances du GPS</string>
+    <string name="lto_download_enabled_title">Téléchargement auto.</string>
+    <string name="lto_download_enabled_summary">Télécharger automatiquement si une connexion est disponible</string>
+    <string name="lto_download_interval_title">Intervale</string>
+    <string name="lto_download_interval_summary">Intervale de téléchargement : %1$s</string>
+    <string name="lto_download_interval_12hours">12 heures</string>
+    <string name="lto_download_interval_1day">1 jour</string>
+    <string name="lto_download_interval_3days">3 jours</string>
+    <string name="lto_download_interval_1week">1 semaine</string>
+    <string name="lto_download_interval_2weeks">2 semaines</string>
+    <string name="lto_download_interval_1month">1 mois</string>
+    <string name="lto_download_file_title">Type de fichier</string>
+    <string name="lto_download_file_7days">Valide pour 7 jours</string>
+    <string name="lto_download_file_30days">Valide pour 1 mois</string>
+    <string name="lto_download_wifi_only_title">Wi-Fi uniquement</string>
+    <string name="lto_download_wifi_only_summary">Ne télécharger ces données qu\'avec une connexion Wi-Fi</string>
+    <string name="lto_download_now">Télécharger</string>
+    <string name="lto_last_download_date">Dernière mise à jour : %1$s</string>
+    <string name="lto_last_download_date_failure">Dernière tentative : %1$s (échec)</string>
+    <string name="lto_downloading_data">Téléchargement en cours\u2026 (%1$s%%)</string>
+    <string name="never">Jamais</string>
+
 </resources>
