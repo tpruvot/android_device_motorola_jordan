@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2012 The CyanogenMod Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+ -->
+
+<!--
+  The <CommandList> element should contain one or more <command> elements.
+  Every command should contain and unique id attribute an the follow
+  requiered attributes:
+
+        path:   (string) The fully qualified path to the executable command
+        args:   (string) The arguments that invoke the executable
+
+  The required exitcode element must have the required attributes commandId and commandPath
+  with the expected command for retrieve the exit code of the executed command
+
+  This file contains values that could be overlayed. This allow
+  configure special values for each device. Use overlay building folder on device tree
+  for overlay this values
+-->
+<CommandList xmlns="http://schemas.android.com/apk/res/com.cyanogenmod.filemanager">
+  <!-- Start code (append to commands; for retrieve the exit code) -->
+  <startcode commandId="startcode" commandPath="/system/xbin/echo %1$s0%2$s ; " />
+  <!-- Exit code (append to commands; for retrieve the exit code) -->
+  <exitcode commandId="exitcode" commandPath=" ; /system/xbin/echo %1$s$?%2$s" />
+
+  <!-- Shell commands -->
+  <command commandId="bash" commandPath="/system/bin/sh" commandArgs="" />
+  <command commandId="su" commandPath="/system/xbin/su" commandArgs="" />
+
+  <!-- Directory -->
+  <command commandId="cd" commandPath="cd" commandArgs="%1$s" />
+  <command commandId="pwd" commandPath="/system/xbin/pwd" commandArgs="-P" />
+
+  <!-- Console info -->
+  <command commandId="groups" commandPath="/system/xbin/groups" commandArgs="" />
+  <command commandId="id" commandPath="/system/bin/toolbox" commandArgs="id" />
+
+  <!-- FileSystem -->
+  <command commandId="mount" commandPath="/system/xbin/mount" commandArgs="-o %1$s,remount -t auto %2$s %3$s" />
+  <command commandId="mountpointinfo" commandPath="/system/bin/toolbox" commandArgs="cat /proc/mounts" />
+
+  <!-- List/Find/Info -->
+  <command commandId="ls" commandPath="cd" commandArgs="%1$s &amp;&amp; /system/bin/toolbox ls -al %1$s | { /system/xbin/grep -v -e '^l' || true; } &amp;&amp; /system/xbin/echo '>SIMLINKS>' &amp;&amp; /system/bin/toolbox ls -al %1$s | { /system/xbin/grep -e '^l' || true; } &amp;&amp; /system/xbin/echo '>SIMLINKS_DATA>' &amp;&amp; /system/bin/toolbox ls -aF %1$s | /system/xbin/grep -e '^l' | /system/xbin/cut -d ' ' -f2- &amp;&amp; /system/bin/toolbox ls -aF %1$s | /system/xbin/grep -e '^l' | /system/xbin/cut -d ' ' -f2- | awk '{print &quot;\\&quot;&quot;$0&quot;\\&quot;&quot;}' | /system/xbin/xargs -r -n1 /system/xbin/readlink -f &amp;&amp; /system/bin/toolbox ls -F %1$s | /system/xbin/grep -e '^l' | /system/xbin/cut -d ' ' -f2- | awk '{print &quot;\\&quot;&quot;$0&quot;\\&quot;&quot;}' | /system/xbin/xargs -r -n1 /system/xbin/readlink -f | awk '{print &quot;\\&quot;&quot;$0&quot;\\&quot;&quot;}' | { /system/xbin/xargs -r /system/bin/toolbox ls -ald || /system/xbin/echo; }" />
+  <command commandId="fileinfo" commandPath="/system/bin/toolbox" commandArgs="ls -ald %1$s" />
+  <command commandId="find" commandPath="/system/xbin/find" commandArgs="%1$s \\( -name %2$s -o -name %3$s -o -name %4$s -o -name %5$s -o -name %6$s \\) -exec /system/xbin/echo {} \\; -exec /system/xbin/ls -ald {} \\;" />
+  <command commandId="quickfoldersearch" commandPath="/system/bin/toobox" commandArgs="ls -aFd %1$s.* %1$s* 2&gt; /dev/null | /system/xbin/grep -e '^d' -e '^ld' | /system/xbin/cut -d&quot; &quot; -f2-" />
+  <command commandId="readlink" commandPath="cd" commandArgs="%2$s &amp;&amp; /system/xbin/readlink -f %1$s | /system/xbin/awk -F// '{print &quot;\\&quot;&quot;$1&quot;\\&quot;&quot;}' | /system/xbin/xargs -n1 /system/xbin/dirname &amp;&amp; /system/xbin/readlink -f %1$s | /system/xbin/awk -F// '{print &quot;\\&quot;&quot;$1&quot;\\&quot;&quot;}' | /system/xbin/xargs -n1 /system/bin/toolbox ls -ald" />
+
+  <!-- Operational -->
+  <command commandId="chmod" commandPath="/system/xbin/chmod" commandArgs="%1$s %2$s" />
+  <command commandId="chown" commandPath="/system/bin/toolbox" commandArgs="chown %1$s.%2$s %3$s" />
+  <command commandId="cp" commandPath="/system/xbin/cp" commandArgs="-af %1$s %2$s" />
+  <command commandId="link" commandPath="/system/xbin/ln" commandArgs="-s %1$s %2$s" />
+  <command commandId="mkdir" commandPath="/system/xbin/mkdir" commandArgs="-p %1$s" />
+  <command commandId="mv" commandPath="/system/xbin/mv" commandArgs="%1$s %2$s || ( /system/xbin/cp -af %1$s %2$s &amp;&amp; /system/xbin/rm -R %1$s )" />
+  <command commandId="rm" commandPath="/system/xbin/rm" commandArgs="%1$s" />
+  <command commandId="rmdir" commandPath="/system/bin/toolbox" commandArgs="rm -R %1$s" />
+
+  <!-- Usage -->
+  <command commandId="diskusage" commandPath="/system/bin/toolbox" commandArgs="df %1$s" />
+  <command commandId="diskusageall" commandPath="/system/bin/toolbox" commandArgs="df" />
+  <command commandId="folderusage" commandPath="/system/bin/toolbox" commandArgs="ls -alR %1$s" />
+
+  <!-- I/O -->
+  <command commandId="read" commandPath="/system/bin/toolbox" commandArgs="cat %1$s" />
+  <command commandId="touch" commandPath="/system/xbin/echo" commandArgs="-n '' >> %1$s" />
+  <command commandId="write" commandPath="/system/xbin/dd" commandArgs="bs=4k of=%1$s" />
+
+  <!-- Run -->
+  <command commandId="exec" commandPath="/system/bin/sh" commandArgs="%1$s" />
+
+  <!-- Misc -->
+  <command commandId="dirname" commandPath="/system/xbin/dirname" commandArgs="%1$s" />
+  <command commandId="echo" commandPath="/system/xbin/echo" commandArgs="%1$s" />
+
+  <!-- Process control and info -->
+  <command commandId="pid_shell" commandPath="/system/xbin/echo" commandArgs="$$" />
+  <command commandId="pid_cmd" commandPath="/system/bin/ps" commandArgs="| /system/xbin/grep %1$s | /system/xbin/grep -w %2$s | /system/xbin/awk '{print $2}'" />
+  <command commandId="sendsignal" commandPath="/system/bin/kill" commandArgs="-%1$s %2$s" />
+  <command commandId="terminate" commandPath="/system/bin/kill" commandArgs="%1$s" />
+
+  <!-- Compress -->
+  <command commandId="tar" commandPath="/system/xbin/tar" commandArgs="-%1$scvf %2$s [@]" />
+  <command commandId="gzip" commandPath="/system/bin/gzip" commandArgs="%1$s" />
+  <command commandId="bzip" commandPath="/system/xbin/bzip2" commandArgs="-f %1$s" />
+
+  <!-- Uncompress -->
+  <command commandId="untar" commandPath="/system/xbin/mkdir" commandArgs="-p %2$s &amp;&amp; /system/xbin/tar -C %2$s -%1$sxvf %3$s" />
+  <command commandId="unzip" commandPath="/system/xbin/mkdir" commandArgs="-p %1$s &amp;&amp; /system/xbin/unzip -o %2$s -d %1$s" />
+  <command commandId="gunzip" commandPath="/system/xbin/gunzip" commandArgs="-f %1$s" />
+  <command commandId="bunzip" commandPath="/system/xbin/bunzip2" commandArgs="-f %1$s" />
+  <command commandId="unlzma" commandPath="/system/xbin/unlzma" commandArgs="-f %1$s" />
+  <command commandId="uncompress" commandPath="/system/xbin/uncompress" commandArgs="-f %1$s" />
+  <command commandId="unxz" commandPath="/system/xbin/unxz" commandArgs="-f %1$s" />
+
+</CommandList>
