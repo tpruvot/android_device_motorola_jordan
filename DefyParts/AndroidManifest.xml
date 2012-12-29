@@ -26,6 +26,9 @@
             </intent-filter>
 
         </activity>
+
+        <service android:name=".BpPanicHandlerService" />
+
     </application>
 
 </manifest>

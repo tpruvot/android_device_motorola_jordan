@@ -67,4 +67,7 @@
     <string name="baseband_version">Version</string>
     <string name="baseband_frequencies">Frequencies: %1$s MHz</string>
     <string name="unknown">Unknown</string>
+
+    <string name="modem_error">Telephony problem detected</string>
+    <string name="touch_to_reboot">Touch to reboot</string>
 </resources>
