@@ -63,7 +63,7 @@ on post-fs
     insmod /system/lib/modules/symsearch-2ndboot.ko
 
     # Overclock after 2ndboot.
-    exec /sbin/sh /system/bootmenu/script/overclock.sh
+    exec /system/bootmenu/script/overclock.sh
 
     # PDS Mount
     exec /system/bootmenu/script/pdsbackup.sh
