@@ -222,6 +222,9 @@ on charger
 on property:sys.chargeonly.mode=1
     class_reset main
     class_reset late_start
+    write /data/simpin lock
+    chmod 0660 /data/simpin
+    chown system system /data/simpin
     start charge
     start battd
 
