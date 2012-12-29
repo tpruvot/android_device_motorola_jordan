@@ -22,11 +22,10 @@ on fs
 
     mount ext3 /dev/block/mmcblk1p21 /system
     mount ext3 /dev/block/mmcblk1p21 /system ro remount
-    mount ext3 /dev/block/mmcblk1p24 /cache nosuid nodev noatime nodiratime barrier=0
-    mount ext3 /dev/block/mmcblk1p25 /data nosuid nodev noatime nodiratime barrier=0
 
-    #mount ext4 /dev/block/mmcblk1p24 /cache wait noatime nodev barrier=0 nobh data=writeback noauto_da_alloc commit=30
-    #mount ext4 /dev/block/mmcblk1p25 /data  wait noatime nodev barrier=0 nobh data=writeback noauto_da_alloc commit=30
+    # Ext4 also supports ext3 mount
+    mount ext4 /dev/block/mmcblk1p24 /cache nosuid nodev noatime nodiratime barrier=0
+    mount ext4 /dev/block/mmcblk1p25 /data nosuid nodev noatime nodiratime barrier=0
 
     mount debugfs debugfs /sys/kernel/debug
 

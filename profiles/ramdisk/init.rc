@@ -1,9 +1,10 @@
+import /init.cm.rc
+
 on early-init
     start ueventd
 
 on init
     loglevel 3
-    log "== init.rc: on init -----------------------"
 
     # Set init and its forked children's oom_adj.
     write /proc/1/oom_adj -16
@@ -23,7 +24,7 @@ on init
     export EXTERNAL_STORAGE /mnt/sdcard
     export ASEC_MOUNTPOINT /mnt/asec
     export LOOP_MOUNTPOINT /mnt/obb
-    export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/filterfw.jar
+    export BOOTCLASSPATH /system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/filterfw.jar:/system/framework/org.simalliance.openmobileapi.jar
 
     # Backward compatibility
     symlink /system/etc /etc
@@ -93,11 +94,9 @@ on init
     # This is needed by any process that uses socket tagging.
     chmod 0644 /dev/xt_qtaguid
 
-on fs
-    log "== init.rc: on fs -------------------------"
+# on fs
 
 on post-fs
-    log "== init.rc: on post-fs --------------------"
 
     # once everything is setup, no need to modify /
     mount rootfs rootfs / ro remount
@@ -124,7 +123,6 @@ on post-fs
     mkdir /cache/lost+found 0770 root root
 
 on post-fs-data
-    log "== init.rc: on post-fs-data ---------------"
 
     # We chown/chmod /data again so because mount is run as root + defaults
     chown system system /data
@@ -192,11 +190,13 @@ on post-fs-data
     chown system system /sys/devices/platform/usb_mass_storage/lun0/file
     chmod 0660 /sys/devices/platform/usb_mass_storage/lun0/file
 
+    chmod 0660 /dev/assd
+    chown smartcard smartcard /dev/assd
+
 # Include extra init file
     import /system/etc/init.local.rc
 
 on boot
-    log "== init.rc: on boot -----------------------"
 
 # basic network init
     ifup lo
@@ -208,7 +208,7 @@ on boot
 
 # Memory management.  Basic kernel parameters, and allow the high
 # level system server to be able to adjust the kernel OOM driver
-# paramters to match how it is managing things.
+# parameters to match how it is managing things.
     write /proc/sys/vm/overcommit_memory 1
     write /proc/sys/vm/min_free_order_shift 4
     chown root system /sys/module/lowmemorykiller/parameters/adj
@@ -279,11 +279,9 @@ on boot
     class_start main
 
 on nonencrypted
-    log "== init.rc: on nonencrypted ---------------"
     class_start late_start
 
 on charger
-    log "== init.rc: on charger --------------------"
     class_start charger
 
 on property:vold.decrypt=trigger_reset_main

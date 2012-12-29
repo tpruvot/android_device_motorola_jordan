@@ -62,6 +62,7 @@
 /dev/wakeup_timer         0660   root       radio
 /dev/modem_pm_driver      0660   root       radio
 /dev/power                0660   root       radio
+/dev/assd                 0660   smartcard  smartcard
 /dev/cpcap                0660   root       system
 /dev/cpcap_batt           0660   root       system
 /dev/cpcap_mot_rtc        0660   root       system
