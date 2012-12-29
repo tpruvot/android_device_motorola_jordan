@@ -249,6 +249,9 @@ on property:sys.chargeonly.mode=1
     log "on property sys.chargeonly.mode=1 starting charger"
     class_reset main
     class_reset late_start
+    write /data/simpin lock
+    chmod 0660 /data/simpin
+    chown system system /data/simpin
     class_start charger
 
 on property:init.svc.wpa_supplicant=stopped

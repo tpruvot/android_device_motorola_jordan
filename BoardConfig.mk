@@ -110,6 +110,9 @@ BUILD_PV_VIDEO_ENCODERS := 1
 BOARD_USES_BOOTMENU := true
 BOARD_WITH_CPCAP    := true
 BOARD_MMC_DEVICE    := /dev/block/mmcblk1
+BOARD_BOOTMODE_CONFIG_FILE := /cache/recovery/bootmode.conf
+BOARD_BOOTMENU_REBOOT_HOOK := ../../../device/motorola/jordan/reboot_hook.c
+
 BOARD_SDCARD_DEVICE_PRIMARY   := /dev/block/mmcblk0p1
 BOARD_SDCARD_DEVICE_SECONDARY := /dev/block/mmcblk0
 BOARD_SDEXT_DEVICE  := /dev/block/mmcblk0p2

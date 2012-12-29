@@ -33,4 +33,7 @@ else
   echo $R > $BM_CONFIG
 fi
 
+# force SIM PIN check after reboot
+echo lock > /data/simpin
+
 sync
