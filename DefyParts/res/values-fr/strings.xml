@@ -63,4 +63,12 @@
     <string name="yes">Oui</string>
     <string name="no">Non</string>
 
+    <string name="modem_error">Problème de Téléphonie</string>
+    <string name="touch_for_info">En savoir plus</string>
+    <string name="reboot_timeout_msg">Sans option séléctionnée, l\'appareil redémarrera dans %1$d secondes.</string>
+    <string name="modem_error_msg">Un problème a été détécté par le modem du téléphone. Un redémarrage est nécessaire pour rétablir son bon fonctionnement.\nQue souhaitez-vous faire ?</string>
+    <string name="reboot_btn">Rebooter maintenant</string>
+    <string name="snooze_btn">Rappeler plus tard</string>
+    <string name="dismiss_btn">Ne plus me le rappeler</string>
+    <string name="device_rebooted_modem_error">L\'appareil a été redémarré a cause d\'un problème interne de téléphonie.</string>
 </resources>
